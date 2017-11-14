@@ -4,8 +4,8 @@
 #include "lang.h"
 #include "user_config.h"
 #include "config_flash.h"
-#include "mqtt_topics.h"
-#include "mqtt_retainedlist.h"
+#include "mqtt/mqtt_topics.h"
+#include "mqtt/mqtt_retainedlist.h"
 #ifdef NTP
 #include "ntp.h"
 #endif

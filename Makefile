@@ -12,7 +12,7 @@
 # - 2014-11-23: Updated for SDK 0.9.3
 # - 2014-12-25: Replaced esptool by esptool.py
 
-BUILD_AREA = /home/martin/github
+BUILD_AREA = /home/mfg/github
 
 # Output directors to store intermediate compiled files
 # relative to the project directory
@@ -33,7 +33,7 @@ ESPPORT		?= /dev/ttyUSB0
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		= driver user mqtt ntp easygpio pwm httpclient adc
+MODULES		= driver user uMQTTBroker/src ntp easygpio pwm httpclient adc
 #EXTRA_INCDIR    = $(BUILD_AREA)/esp-open-sdk/esp-open-lwip/include include
 EXTRA_INCDIR    = include
 
@@ -141,4 +141,3 @@ clean:
 	$(Q) rm -rf $(FW_BASE) $(BUILD_BASE)
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
-

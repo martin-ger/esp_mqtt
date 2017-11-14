@@ -1,0 +1,3 @@
+[submodule "uMQTTBroker"]
+	path = uMQTTBroker
+	url = https://github.com/martin-ger/uMQTTBroker

@@ -13,9 +13,9 @@
 #include "config_flash.h"
 #include "sys_time.h"
 
-#include "mqtt_server.h"
-#include "mqtt_topiclist.h"
-#include "mqtt_retainedlist.h"
+#include "mqtt/mqtt_server.h"
+#include "mqtt/mqtt_topiclist.h"
+#include "mqtt/mqtt_retainedlist.h"
 
 #ifdef GPIO
 //#include "easygpio.h"

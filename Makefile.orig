@@ -36,12 +36,12 @@ TARGET		?= esp_mqtt
 TARGET_LIB ?= libmqtt.a
 
 # which modules (subdirectories) of the project to include in compiling
-USER_MODULES		= user driver mqtt modules
+USER_MODULES		= user driver uMQTTBroker/src modules
 USER_INC				= include
 USER_LIB				=
 
 # which modules (subdirectories) of the project to include when compiling as library
-LIB_MODULES			= mqtt
+LIB_MODULES			= uMQTTBroker/src
 
 SDK_LIBDIR = lib
 SDK_LIBS = c gcc phy pp net80211 wpa main lwip 

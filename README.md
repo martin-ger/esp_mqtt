@@ -209,23 +209,8 @@ The broker does not yet support:
 - TLS
 "
 # Using the esp_uMQTT_broker in an Arduino project
-There is a quick-and-dirty hack to add the pure broker functionality (not the CLI and the scripting) to any ESP Arduino project:
+You can use the pure broker functionality (not the CLI and the scripting) in any ESP Arduino project by using https://github.com/martin-ger/uMQTTBroker . Just clone (or download the zip-file and extract it) into the libraries directory of your Arduino ESP8266 installation.
 
-- Go to the install directory of the ESP8266 support package (something like: "[yourArduinoDir]/hardware/esp8266com/esp8266")
-- Look for the file "platform.txt"
-- Search for the line with "compiler.c.elf.libs"
-- Add "-lmqtt" to the libs. Now it should look like:
-```
-compiler.c.elf.libs=-lm -lgcc -lhal -lphy -lpp -lnet80211 -lwpa -lcrypto -lmain -lwps -laxtls -lsmartconfig -lmesh -lwpa2 -lmqtt {build.lwip_lib} -lstdc++
-```
-- From this directory go to "cd tools/sdk/lib".
-- Copy "libmqtt.a" from the "firmware" directory of this repository into that location (where the other C-libs of the SDK are).
-- From this directory go to "cd ../include".
-- Copy "mqtt_server.h" from the "Arduino" directory of this repository into that location (where the other include files of the SDK are).
-- Now you can use it in your sketch. Just include
-```c
-#include "mqtt_server.h"
-```
 Now you can use the API as described in the next subsection.
 
 Sample: in the Arduino setup() initialize the WiFi connection (client or SoftAP, whatever you need) and somewhere at the end add these line:
@@ -235,7 +220,7 @@ MQTT_server_start(1883, 30, 30);
 
 The MQTT server will now run in the background and you can connect with any MQTT client. Your Arduino project might do other application logic in its loop.
 
-You can find a sample sketch in the "Arduino" directory.
+You can find a sample sketch in the examples.
 
 # Using the Source Code
 The complete broker functionality is included in the mqtt directory and can be integrated into any NONOS SDK (or ESP Arduino) program ("make -f Makefile.orig lib" will build the mqtt code as a C library). You can find a minimal demo in the directory "user_basic". Rename it to "user", adapt "user_config.h", and do the "make" to build a small demo that just starts an MQTT broker without any additional logic.

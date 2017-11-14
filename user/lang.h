@@ -1,7 +1,7 @@
 #ifndef _LANG_
 #define _LANG_
 
-#include "mqtt_server.h"
+#include "mqtt/mqtt_server.h"
 
 
 typedef enum {SYNTAX_CHECK, CONFIG, INIT, MQTT_CLIENT_CONNECT, WIFI_CONNECT, TOPIC_LOCAL, TOPIC_REMOTE, TIMER, GPIO_INT, CLOCK, HTTP_RESPONSE} Interpreter_Status;
