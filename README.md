@@ -197,9 +197,9 @@ On Windows you can flash it using the "ESP8266 Download Tool" available at https
 If "QIO" mode fails on your device, try "DIO" instead. Also have a look at the "Detected Info" to check size and mode of the flash chip. If your downloaded firmware still doesn't start properly, please check with the enclosed checksums whether the binary files are possibly corrupted.
 
 # The MQTT broker library
-The library code has been moved to a separate Directory at https://github.com/martin-ger/uMQTTBroker . 
+The library code has been moved to a separate repository at https://github.com/martin-ger/uMQTTBroker and is included recursivly. 
 
-The can be integrated into any NONOS SDK (or ESP Arduino) program ("make -f Makefile.orig lib" will build the mqtt code as a C library). You can find a minimal NONOS SDK sample in the directory "user_basic" in this repository. Rename it to "user", adapt "user_config.h", and do the "make" to build a small demo that just starts an MQTT broker without any additional logic.
+It can be integrated into any NONOS SDK (or esp-open-sdk) program ("make -f Makefile.orig lib" will build the mqtt code as a C library). You can find a minimal NONOS SDK sample in the directory "user_basic" in this repository. Rename it to "user", adapt "user_config.h", and do the "make" to build a small demo that just starts an MQTT broker without any additional logic.
 
 The broker is started by simply including:
 
