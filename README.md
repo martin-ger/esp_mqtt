@@ -204,7 +204,7 @@ It can be integrated into any NONOS SDK (or esp-open-sdk) program ("make -f Make
 The broker is started by simply including:
 
 ```c
-#include "mqtt_server.h"
+#include "mqtt/mqtt_server.h"
 ```
 and then calling
 ```c
