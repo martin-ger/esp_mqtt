@@ -529,7 +529,6 @@ static void ICACHE_FLASH_ATTR MQTT_ClientCon_recv_cb(void *arg, char *pdata, uns
 		const char *password =
 		    mqtt_get_str(&clientcon->mqtt_state.in_buffer[2 + msg_used_len], &password_len);
 
-		if (password != NULL)
 		clientcon->connect_info.password = (char *)os_zalloc(password_len+1);
 		if (clientcon->connect_info.password != NULL) {
 		    os_memcpy(clientcon->connect_info.password, password, password_len);
