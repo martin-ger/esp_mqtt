@@ -530,19 +530,21 @@ static void ICACHE_FLASH_ATTR MQTT_ClientCon_recv_cb(void *arg, char *pdata, uns
 		    mqtt_get_str(&clientcon->mqtt_state.in_buffer[2 + msg_used_len], &password_len);
 
 		if (password == NULL) {
-		    clientcon->connect_info.password = (char *)NULL;
+		    MQTT_WARNING("MQTT: Password invalid\r\n");
+		    MQTT_server_disconnectClientCon(clientcon);
+		    return;
+		}
+
+		clientcon->connect_info.password = (char *)os_zalloc(password_len+1);
+		if (clientcon->connect_info.password != NULL) {
+		    os_memcpy(clientcon->connect_info.password, password, password_len);
+		    clientcon->connect_info.password[password_len] = '\0';
+		    MQTT_INFO("MQTT: Password %s\r\n", clientcon->connect_info.password);
 		} else {
-		    clientcon->connect_info.password = (char *)os_zalloc(password_len+1);
-		    if (clientcon->connect_info.password != NULL) {
-		        os_memcpy(clientcon->connect_info.password, password, password_len);
-		        clientcon->connect_info.password[password_len] = '\0';
-		        MQTT_INFO("MQTT: Password %s\r\n", clientcon->connect_info.password);
-		    } else {
-		        MQTT_ERROR("MQTT: Out of mem\r\n");
-		        msg_conn_ret = CONNECTION_REFUSE_SERVER_UNAVAILABLE;
-		        clientcon->connState = TCP_DISCONNECTING;
-		        break;
-		    }	
+		    MQTT_ERROR("MQTT: Out of mem\r\n");
+		    msg_conn_ret = CONNECTION_REFUSE_SERVER_UNAVAILABLE;
+		    clientcon->connState = TCP_DISCONNECTING;
+		    break;
 		}
 		msg_used_len += 2 + password_len;
 	    }
