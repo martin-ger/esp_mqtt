@@ -3,9 +3,9 @@ An MQTT Broker/Client with scripting support on the ESP8266
 
 This program enables the ESP8266 to become the central node in a small distributed IoT system. It implements an MQTT Broker and a simple scripted rule engine with event/action statements that links together the MQTT sensors and actors. It can act as STA, as AP, or as both and it can connect to another MQTT broker (i.e. in the cloud). Here it can also be bridge that forwards and rewrites topics in both directions. Also it can parse JSON structures, send basic HTTP GET requests and do basic I/O: i.e. read and write to local GPIO pins, react on timers and GPIO interrupts, drive GPIO pins with PWM, and read the ADC.
 
-If you need the plain MQTT broker functionality in an Arduino project look here: https://github.com/martin-ger/esp_mqtt/blob/master/README.md#using-the-esp_umqtt_broker-in-an-arduino-project
-
 Find a video that explains the ideas and the architecture of the project at: https://www.youtube.com/watch?v=0K9q4IuB_oA
+
+You can use the pure broker functionality (not the CLI and the scripting) in any ESP *Arduino* project as a libary by going to https://github.com/martin-ger/uMQTTBroker . Just clone (or download the zip-file and extract it) into the libraries directory of your Arduino ESP8266 installation.
 
 # Usage
 In the user directory there is the main program that serves as a stand-alone MQTT broker, client and bridge. The program starts with the following default configuration:
@@ -178,6 +178,11 @@ mDNS is supported and depending on "mdns_mode" the broker responds on the name "
 # Building and Flashing
 The code can be used in any project that is compiled using the NONOS_SDK or the esp-open-sdk. Also the complete broker in the user directory can be build using the standard SDKs after adapting the variables in the Makefile.
 
+Download the repository using
+```bash
+$ git clone --recursive  https://github.com/martin-ger/esp_mqtt.git
+```
+
 Configure the build options in "user_config.h", then build the esp_uMQTT_broker firmware with "make". "make flash" flashes it onto an esp8266.
  
 If you want to use the precompiled binaries from the firmware directory you can flash them directly on an ESP8266, e.g. with
@@ -192,38 +197,9 @@ On Windows you can flash it using the "ESP8266 Download Tool" available at https
 If "QIO" mode fails on your device, try "DIO" instead. Also have a look at the "Detected Info" to check size and mode of the flash chip. If your downloaded firmware still doesn't start properly, please check with the enclosed checksums whether the binary files are possibly corrupted.
 
 # The MQTT broker library
-Thanks to Tuan PM for sharing his MQTT client library https://github.com/tuanpmt/esp_mqtt as a basis with us. The modified code still contains the complete client functionality from the original esp_mqtt lib, but it has been extended by the basic broker service.
+The library code has been moved to a separate Directory at https://github.com/martin-ger/uMQTTBroker . 
 
-The broker does support:
-- MQTT protocoll versions v3.1 and v3.1.1 simultaniously
-- a smaller number of clients (at least 8 have been tested, memory is the issue)
-- retained messages
-- LWT
-- QoS level 0
-- username/password authentication
- 
-The broker does not yet support:
-- QoS levels other than 0
-- many TCP(=MQTT) clients
-- non-clear sessions
-- TLS
-"
-# Using the esp_uMQTT_broker in an Arduino project
-You can use the pure broker functionality (not the CLI and the scripting) in any ESP Arduino project by using https://github.com/martin-ger/uMQTTBroker . Just clone (or download the zip-file and extract it) into the libraries directory of your Arduino ESP8266 installation.
-
-Now you can use the API as described in the next subsection.
-
-Sample: in the Arduino setup() initialize the WiFi connection (client or SoftAP, whatever you need) and somewhere at the end add these line:
-```c
-MQTT_server_start(1883, 30, 30);
-```
-
-The MQTT server will now run in the background and you can connect with any MQTT client. Your Arduino project might do other application logic in its loop.
-
-You can find a sample sketch in the examples.
-
-# Using the Source Code
-The complete broker functionality is included in the mqtt directory and can be integrated into any NONOS SDK (or ESP Arduino) program ("make -f Makefile.orig lib" will build the mqtt code as a C library). You can find a minimal demo in the directory "user_basic". Rename it to "user", adapt "user_config.h", and do the "make" to build a small demo that just starts an MQTT broker without any additional logic.
+The can be integrated into any NONOS SDK (or ESP Arduino) program ("make -f Makefile.orig lib" will build the mqtt code as a C library). You can find a minimal NONOS SDK sample in the directory "user_basic" in this repository. Rename it to "user", adapt "user_config.h", and do the "make" to build a small demo that just starts an MQTT broker without any additional logic.
 
 The broker is started by simply including:
 
@@ -235,40 +211,6 @@ and then calling
 bool MQTT_server_start(uint16_t portno, uint16_t max_subscriptions, uint16_t max_retained_topics);
 ```
 in the "user_init()" (or Arduino "setup()") function. Now it is ready for MQTT connections on all activated interfaces (STA and/or AP). Please note, that the lib uses two tasks (with prio 1 and 2) for client and broker. Thus, only task with prio 0 is left for a user application.
-
-Your code can locally interact with the broker using these functions:
-
-```c
-bool MQTT_local_publish(uint8_t* topic, uint8_t* data, uint16_t data_length, uint8_t qos, uint8_t retain);
-bool MQTT_local_subscribe(uint8_t* topic, uint8_t qos);
-bool MQTT_local_unsubscribe(uint8_t* topic);
-
-void MQTT_server_onData(MqttDataCallback dataCb);
-```
-
-With these functions you can publish and subscribe topics as a local client like you would with any remote MQTT broker. The provided dataCb is called on each reception of a matching topic, no matter whether it was published from a remote client or the "MQTT_local_publish()" function.
-
-Username/password authentication is provided with the following interface:
-
-```c
-typedef bool (*MqttAuthCallback)(const char* username, const char *password, struct espconn *pesp_conn);
-
-void MQTT_server_onAuth(MqttAuthCallback authCb);
-
-typedef bool (*MqttConnectCallback)(struct espconn *pesp_conn, uint16_t client_count);
-
-void MQTT_server_onConnect(MqttConnectCallback connectCb);
-```
-
-If an *MqttAuthCallback* function is registered with MQTT_server_onAuth(), it is called on each connect request. Based on username, password, and optionally the connection info (e.g. the IP address) the function has to return *true* for authenticated or *false* for rejected. If a request provides no username and/or password these parameter strings are empty. If no *MqttAuthCallback* function is set, each request will be admitted.
-
-The *MqttConnectCallback* function does a similar check for the connection, but it is called right after the connect request before the MQTT connect request is processed. This is done in order to reject requests from unautorized clients in an early stage. The number of currently connected clients (incl. the current one) is given in the *client_count* paramater. With this info you can reject too many concurrent connections.
-
-If you want to force a cleanup when the broker as a WiFi client (WIFI_STA mode) has lost connectivity to the AP, call:
-```c
-void MQTT_server_cleanupClientCons();
-```
-This will remove all broken connections, publishing LWT if defined.
 
 # Limitations on the number of clients
 To adjust memory consumption of one MQTT connection and thus the max number of concurrent connections you can redefine MQTT_BUF_SIZE and QUEUE_BUFFER_SIZE in "user_config.h". MQTT_BUF_SIZE is the max. size of pending inbound messages for one connection (and thus also the max. size of a single MQTT message) and QUEUE_BUFFER_SIZE is the max. size of all pending outbound messages for one connection. Currently these parameters are set to 1024 resp. 2048 bytes, resulting in a memory consumption of about 4 KB per connection and a max number of connections of about 8-9 (depending on the memory usage of the rest of the program). When you reduce buffer sizes, e.g. to 512 and 1024 bytes, a single connection requires only about 2.5 KB resulting in up to 13 possible concurrent MQTT connections. In any case you have to increase the number of TCP connections (default 5) first by calling "espconn_tcp_set_max_con(n)" with n, the max. number of concurrent TCP connections, less or equal to 15.
