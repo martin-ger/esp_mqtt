@@ -106,13 +106,3 @@ do
 		settimer 1 500
 	endif
 
-
-% Switch on in the evening
-on clock 19:30:00
-do
-	publish local $command_topic "on"
-
-% Switch off at night
-on clock 01:00:00
-do
-	publish local $command_topic "off"
