@@ -1,0 +1,50 @@
+% Timeclock example for using alarms
+% Publish time values (format hh:mm:ss) on the "/timeclock/on_time" and "/timeclock/on_time" topics
+% to the brocker and the build-in LED will switch at the given times.
+
+% Config params, overwrite any previous settings from the commandline
+config ntp_server	1.pool.ntp.org
+config ntp_timezone	1
+
+% Now the initialization, this is done once after booting
+on init
+do
+	% Command prefix
+	setvar $command_prefix = "/timeclock"
+	% Command topic
+	setvar $command_topic = $command_prefix | "/#"
+
+	% local subscriptions once in 'init'
+	subscribe local $command_topic
+
+% Now the events, checked whenever something happens
+
+% Is there a remote command?
+on topic local $command_topic
+do
+	if ($this_topic = $command_prefix | "/on-time") then
+		println "Received on command: " | $this_data
+		setalarm 1 $this_data
+	endif
+
+	if ($this_topic = $command_prefix | "/off-time") then
+		println "Received off command: " | $this_data
+		setalarm 2 $this_data
+	endif
+
+	if ($this_topic = $command_prefix | "/switch") then
+		println "Received switch command: " | $this_data
+		gpio_out 2 not($this_data)
+	endif
+
+% Switch on 
+on alarm 1
+do
+	println "Switch on at " | $timestamp  
+	gpio_out 2 0
+
+% Switch off 
+on alarm 2
+do
+	println "Switch off at " | $timestamp 
+	gpio_out 2 1

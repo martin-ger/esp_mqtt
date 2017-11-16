@@ -41,7 +41,6 @@ struct espconn *downloadCon;
 struct espconn *scriptcon;
 uint8_t *load_script;
 uint32_t load_size;
-bool timestamps_init;
 #endif
 
 /* System Task, for signals refer to user_config.h */
@@ -1406,10 +1405,6 @@ void ICACHE_FLASH_ATTR timer_func(void *arg) {
 	uint8_t *timestr = get_timestr();
 	MQTT_local_publish("$SYS/broker/time", get_timestr(config.ntp_timezone), 8, 0, 0);
 #ifdef SCRIPTED
-	if (!timestamps_init) {
-	    init_timestamps(timestr);
-	    timestamps_init = true;
-	}
 	check_timestamps(timestr);
 #endif
     }
@@ -1833,7 +1828,6 @@ void  user_init() {
     system_os_task(user_procTask, user_procTaskPrio, user_procTaskQueue, user_procTaskQueueLen);
 
 #ifdef SCRIPTED
-    timestamps_init = false;
     interpreter_init();
 #endif
 

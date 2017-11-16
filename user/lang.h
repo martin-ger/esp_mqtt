@@ -4,7 +4,7 @@
 #include "mqtt/mqtt_server.h"
 
 
-typedef enum {SYNTAX_CHECK, CONFIG, INIT, MQTT_CLIENT_CONNECT, WIFI_CONNECT, TOPIC_LOCAL, TOPIC_REMOTE, TIMER, GPIO_INT, CLOCK, HTTP_RESPONSE} Interpreter_Status;
+typedef enum {SYNTAX_CHECK, CONFIG, INIT, MQTT_CLIENT_CONNECT, WIFI_CONNECT, TOPIC_LOCAL, TOPIC_REMOTE, TIMER, GPIO_INT, ALARM, HTTP_RESPONSE} Interpreter_Status;
 typedef enum {STRING_T, DATA_T} Value_Type;
 
 typedef struct _var_entry_t {

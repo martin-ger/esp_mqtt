@@ -33,7 +33,7 @@ In general, scripts conform to the following BNF:
             wificonnect |
 	    mqttconnect |
             timer <num> |
-            clock <timestamp> |
+            alarm <num> |
             gpio_interrupt <num> (pullup|nopullup) |
             topic (local|remote) <topic-id> |
             http_response
@@ -42,6 +42,7 @@ In general, scripts conform to the following BNF:
              subscribe (local|remote) <topic-id> |
              unsubscribe (local|remote) <topic-id> |
              settimer <num> <expr> |
+             setalarm <num> <expr> |
              setvar ($[any ASCII]* | @<num>) = <expr> |
              http_get <expr> |
              http_post <expr> <expr> |
@@ -65,8 +66,6 @@ In general, scripts conform to the following BNF:
 <string> := "[any ASCII]*" | [any ASCII]*
 
 <num> := [0-9]*
-
-<timestamp> := hh:mm:ss
 ```
 
 ## Statements
@@ -107,9 +106,9 @@ timer <num>
 This event happens when the timer with the given number expires. Timers are set in millisecond units, but their expiration might be delayed by other interrupts and events, e.g. network traffic. Thus their accuracy is limited. Timers are not reloading automatically. I.e. if you need a permanently running timer, reload the expired timer in the "on timer" clause.
 
 ```
-clock <timestamp>
+alarm <num>
 ```
-This event happens when the time-of-day value given in the event has been reached. It happens once per day. Timestamps are given as "hh:mm:ss" and are only available if NTP is enabled. Make sure to set the correct "ntp_timezone" to adjust UTC to your location.
+This event happens when the time-of-day stored in the alarm with the given number is reached. It happens once per day. Alarm times are given as "hh:mm:ss" and are only available if NTP is enabled. Make sure to set the correct "ntp_timezone" to adjust UTC to your location.
 
 ```
 gpio_interrupt <num> (pullup|nopullup)
@@ -137,6 +136,11 @@ Subscribes or unsubscribes a topic either at the local or at the remote broker. 
 settimer <num> <expr>
 ```
 (Re-)initializes the timer "num" with a value given in milliseconds. Timers are not reloading automatically. I.e. if you need a permanently running timer, reload the expired timer in the "on timer" clause.
+
+```
+setalarm <num> <expr>
+```
+(Re-)initializes the alarm "num" with a value given as "hh:mm:ss" (it can also be just "hh:mm" or even "hh"). Alarm values are compared lexicographically with the current clock time.
 
 ```
 setvar ($[any ASCII]* | @<num>) = <expr>
@@ -267,7 +271,7 @@ This operator concatenates the left and the right operator as strings. Useful e.
 Comments start with a ’%' anywhere in a line and reach until the end of this line.
 
 ## Sample
-Here is a demo of a script to give you an idea of the power of the scripting feature. This script controls a Sonoff switch module. It connects to a remote MQTT broker and in parallel offers locally its own. The device has a number stored in the variable $device_number. On both brokers it subscribes to a topic named '/martinshome/switch/($device_number)/command', where it receives commands, and it publishes the topic '/martinshome/switch/($device_number)/status' with the current state of the switch relay. It understands the commands 'on','off', 'toggle', and 'blink'. Blinking is realized via a timer event. Local status is stored in the two variables $relay_status and $blink (blinking on/off). The 'on gpio_interrupt' clause reacts on pressing the pushbutton of the Sonoff and simply toggles the switch (and stops blinking). The last two 'on clock' clauses implement a daily on and off period:
+Here is a demo of a script to give you an idea of the power of the scripting feature. This script controls a Sonoff switch module. It connects to a remote MQTT broker and in parallel offers locally its own. The device has a number stored in the variable $device_number. On both brokers it subscribes to a topic named '/martinshome/switch/($device_number)/command', where it receives commands, and it publishes the topic '/martinshome/switch/($device_number)/status' with the current state of the switch relay. It understands the commands 'on','off', 'toggle', and 'blink'. Blinking is realized via a timer event. Local status is stored in the two variables $relay_status and $blink (blinking on/off). The 'on gpio_interrupt' clause reacts on pressing the pushbutton of the Sonoff and simply toggles the switch (and stops blinking):
 
 ```
 % Config params, overwrite any previous settings from the commandline
@@ -377,17 +381,6 @@ do
 		publish local $command_topic "toggle"
 		settimer 1 500
 	endif
-
-
-% Switch on in the evening
-on clock 19:30:00
-do
-	publish local $command_topic "on"
-
-% Switch off at night
-on clock 01:00:00
-do
-	publish local $command_topic "off"
 ```
 
 

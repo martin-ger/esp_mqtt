@@ -40,9 +40,10 @@ if (interpreter_status==SYNTAX_CHECK && next_token+(x) >= max_token) \
   return syntax_error(next_token+(x), EOT)
 #define syn_chk (interpreter_status==SYNTAX_CHECK)
 
+typedef enum {INVALID = 0, HAPPENED, NOT_HAPPENED, UNDEFINED} Alarm_State;
 typedef struct _timestamp_entry_t {
-    uint8_t *ts;
-    bool happened;
+    uint8_t ts[9];
+    Alarm_State state;
 } timestamp_entry_t;
 
 #ifdef GPIO
@@ -70,8 +71,7 @@ char *interpreter_topic;
 char *interpreter_data;
 int interpreter_data_len;
 int interpreter_timer;
-char *interpreter_timestamp;
-int ts_counter;
+int interpreter_timestamp;
 #ifdef GPIO
 bool in_gpio_statement;
 int interpreter_gpio;
@@ -121,37 +121,33 @@ static void ICACHE_FLASH_ATTR lang_timers_timeout(void *arg) {
     parse_statement(0);
 }
 
-void ICACHE_FLASH_ATTR init_timestamps(uint8_t * curr_time) {
-    int i;
-
-    for (i = 0; i < ts_counter; i++) {
-	if (os_strcmp(curr_time, timestamps[i].ts) >= 0) {
-	    timestamps[i].happened = true;
-	} else {
-	    timestamps[i].happened = false;
-	}
-    }
-}
-
 void ICACHE_FLASH_ATTR check_timestamps(uint8_t * curr_time) {
     int i;
 
     if (!script_enabled)
 	return;
-    for (i = 0; i < ts_counter; i++) {
+
+    for (i = 0; i < MAX_TIMESTAMPS; i++) {
+	if (timestamps[i].state == INVALID)
+	    continue;
+
 	if (os_strcmp(curr_time, timestamps[i].ts) >= 0) {
-	    if (timestamps[i].happened)
+	    if (timestamps[i].state == UNDEFINED) {
+		timestamps[i].state = HAPPENED;
+		continue;
+	    }
+	    if (timestamps[i].state == HAPPENED)
 		continue;
 	    lang_debug("timerstamp %s happened\r\n", timestamps[i].ts);
 
 	    interpreter_topic = interpreter_data = "";
 	    interpreter_data_len = 0;
-	    interpreter_status = CLOCK;
-	    interpreter_timestamp = timestamps[i].ts;
+	    interpreter_status = ALARM;
+	    interpreter_timestamp = i;
 	    parse_statement(0);
-	    timestamps[i].happened = true;
+	    timestamps[i].state = HAPPENED;
 	} else {
-	    timestamps[i].happened = false;
+	    timestamps[i].state = NOT_HAPPENED;
 	}
     }
 }
@@ -578,6 +574,20 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	}
 	return next_token + 2;
     }
+
+    if (is_token(next_token, "alarm")) {
+	lang_debug("event alarm\r\n");
+
+	len_check(1);
+	uint32_t timer_no = atoi(my_token[next_token + 1]);
+	if (timer_no == 0 || timer_no > MAX_TIMESTAMPS)
+	    return syntax_error(next_token + 1, "invalid alarm number");
+	if (interpreter_status == ALARM && interpreter_timestamp == --timer_no) {
+	    lang_log("on alarm %s\r\n", my_token[next_token + 1]);
+	    *happend = true;
+	}
+	return next_token + 2;
+    }
 #ifdef GPIO
     if (is_token(next_token, "gpio_interrupt")) {
 	lang_debug("event gpio\r\n");
@@ -611,22 +621,6 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	return next_token + 3;
     }
 #endif
-    if (is_token(next_token, "clock")) {
-	lang_debug("event clock\r\n");
-
-	len_check(1);
-	if (syn_chk && os_strlen(my_token[next_token + 1]) != 8)
-	    return syntax_error(next_token, "invalid timestamp");
-	if (syn_chk) {
-	    if (ts_counter >= MAX_TIMESTAMPS)
-		return syntax_error(next_token, "too many timestamps");
-	    timestamps[ts_counter++].ts = my_token[next_token + 1];
-	}
-	*happend = (interpreter_status == CLOCK && os_strcmp(interpreter_timestamp, my_token[next_token + 1]) == 0);
-	if (*happend)
-	    lang_log("on clock %s\r\n", my_token[next_token + 1]);
-	return next_token + 2;
-    }
 #ifdef HTTPC
     if (is_token(next_token, "http_response")) {
 	lang_debug("event http_response\r\n");
@@ -638,7 +632,7 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	return next_token + 1;
     }
 #endif
-    return syntax_error(next_token, "'init', 'mqttconnect', 'topic', 'gpio_interrupt', 'clock', 'http_response', or 'timer' expected");
+    return syntax_error(next_token, "'init', 'mqttconnect', 'topic', 'gpio_interrupt', 'alarm', 'http_response', or 'timer' expected");
 }
 
 int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
@@ -845,6 +839,27 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 		    os_timer_setfn(&timers[timer_no], (os_timer_func_t *) lang_timers_timeout, (void *)timer_no);
 		    os_timer_arm(&timers[timer_no], timer_val, 0);
 		}
+	    }
+	}
+
+	else if (is_token(next_token, "setalarm")) {
+	    len_check(2);
+	    uint32_t alarm_no = atoi(my_token[next_token + 1]);
+	    if (alarm_no == 0 || alarm_no > MAX_TIMESTAMPS)
+		return syntax_error(next_token + 1, "invalid alarm number");
+
+	    char *timer_char;
+	    int timer_len;
+	    Value_Type timer_type;
+	    if ((next_token = parse_expression(next_token + 2, &timer_char, &timer_len, &timer_type, doit)) == -1)
+		return -1;
+
+	    if (doit) {
+		lang_log("setalarm %d %d\r\n", alarm_no, timer_char);
+
+		alarm_no--;
+		os_strncpy(timestamps[alarm_no].ts, timer_char, 9);
+		timestamps[alarm_no].state = UNDEFINED;
 	    }
 	}
 
@@ -1484,7 +1499,6 @@ int ICACHE_FLASH_ATTR interpreter_syntax_check() {
     interpreter_topic = interpreter_data = "";
     interpreter_data_len = 0;
     os_bzero(&timestamps, sizeof(timestamps));
-    ts_counter = 0;
 #ifdef GPIO
     gpio_counter = 0;
 #ifdef GPIO_PWM
