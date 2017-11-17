@@ -1131,6 +1131,64 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	    }
 	}
     }
+    else if (is_token(next_token, "substr")) {
+	lang_debug("val substr\r\n");
+
+	len_check(7);
+	if (syn_chk && !is_token(next_token+1, "("))
+	    return syntax_error(next_token+1, "expected '('");
+
+	char *str_data;
+	int str_data_len;
+	Value_Type str_data_type;
+	// parse path string
+	if ((next_token = parse_expression(next_token + 2, &str_data, &str_data_len, &str_data_type, doit)) == -1)
+	    return -1;
+	if (!doit)
+	    str_data_len = 0;
+	char str[str_data_len+1];
+	if (doit)
+	    os_strcpy(str, str_data);
+
+	if (syn_chk && !is_token(next_token, ","))
+	    return syntax_error(next_token, "expected ','");
+	next_token++;
+
+	int16_t from = atoi(my_token[next_token]);
+	// if as string const
+	if (my_token[next_token][0] == '"')
+	    from = atoi(&my_token[next_token][1]);
+	next_token++;
+
+	if (syn_chk && !is_token(next_token, ","))
+	    return syntax_error(next_token, "expected ','");
+	next_token++;
+
+	uint16_t len = atoi(my_token[next_token]);
+	next_token++;
+
+	if (syn_chk && !is_token(next_token, ")"))
+	    return syntax_error(next_token, "expected ')'");
+	next_token++;
+
+	if (doit) {
+	    if (from < 0) {
+		from = str_data_len+from;
+		if (from < 0)
+		    from = 0;
+	    }
+
+	    if (len+1 > sizeof(tmp_buffer))
+		len = sizeof(tmp_buffer)-1;
+
+	    os_strncpy(tmp_buffer, &str[from], len);
+	    tmp_buffer[len] = '\0';
+
+	    *data_len = len;
+	    *data = tmp_buffer;
+	    *data_type = STRING_T;
+	}
+    }
 #ifdef GPIO
     else if (is_token(next_token, "gpio_in")) {
 	lang_debug("val gpio_in\r\n");

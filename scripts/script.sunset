@@ -1,0 +1,69 @@
+% Config params, overwrite any previous settings from the commandline
+% Nothing here
+
+% Now the events, checked whenever something happens
+
+% Now the initialization, this is done once after booting
+on init
+do
+	% Enter your local coordinates here:
+	setvar $service_url = "https://api.sunrise-sunset.org/json?lat=50.734579&lng=7.090007&date=today&formatted=0"
+
+	% Daily lookup time
+	setalarm 3 01:00:00
+
+on wificonnect
+do
+	println $service_url
+	http_get $service_url
+
+	% Retry on no response
+	settimer 1 20000
+
+on http_response
+do
+	println "return code: " | $this_http_code
+	if not($this_http_code = 200) then
+		% Retry on failue
+		settimer 1 20000
+	else
+		settimer 1 0
+		println $this_http_body
+
+		setvar $sunrise = substr(json_parse("results.sunrise", $this_http_body), 11, 8)
+		setvar $sunset = substr(json_parse("results.sunset", $this_http_body), 11, 8)
+
+		println "Sunrise: " | $sunrise
+		println "Sunset: " | $sunset
+
+		setalarm 1 $sunset
+		setalarm 2 $sunrise
+	endif
+
+% Retry timer
+on timer 1
+do
+	println "Retry: " | $service_url
+	http_get $service_url	
+
+% Switch on 
+on alarm 1
+do
+	publish local /time/sunset $sunset
+
+	println "Sunset - switch on at " | $timestamp  
+	gpio_out 2 0
+
+% Switch off 
+on alarm 2
+do
+	publish local /time/sunrise $sunrise
+
+	println "Sunrise - switch off at " | $timestamp 
+	gpio_out 2 1
+
+% Get new values
+on alarm 3
+do
+	println $service_url
+	http_get $service_url
