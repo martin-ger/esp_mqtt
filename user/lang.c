@@ -1178,13 +1178,13 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 		    from = 0;
 	    }
 
-	    if (len+1 > sizeof(tmp_buffer))
+	    if (len > sizeof(tmp_buffer)-1)
 		len = sizeof(tmp_buffer)-1;
 
 	    os_strncpy(tmp_buffer, &str[from], len);
 	    tmp_buffer[len] = '\0';
 
-	    *data_len = len;
+	    *data_len = os_strlen(tmp_buffer);
 	    *data = tmp_buffer;
 	    *data_type = STRING_T;
 	}
