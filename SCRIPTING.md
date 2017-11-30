@@ -56,7 +56,7 @@ In general, scripts conform to the following BNF:
 
 <expr> ::= <val> | <val> <op> <expr> | (<expr>) | not (<expr>) |
            retained_topic(<expr>) | substr(<expr>,<num>,<num>) |
-           json_parse (<expr>,<expr>)
+           csvstr(<expr>,<num>,<char>) | json_parse (<expr>,<expr>)
 
 <op> := '=' | '>' | gte | str_ge | str_gte | '+' | '-' | '*' | '|' | div
 
@@ -210,6 +210,11 @@ Interpretes the argument as topic name (incl. wildcards) and searches the first 
 substr(<expr>,<num>,<num>)
 ```
 Extracts characters from a string. The two constant numbers give the starting position (first is postion 0) and the length. If the starting position is negative (write it with colons as e.g. "-2"), it counts backwards from the end of the string.
+
+```
+csvstr(<expr>,<num>,<char>)
+```
+Extracts strings from a CSV-list (correctly a string with a delimiter character). The constant number gives the position (first is postion 1) and the char is the delimiter. Examples: csvstr("one,two,three", 2, ",") is "two", csvstr("system/test/1", 2, "/") is "test"
 
 ```
 json_parse (<expr>,<expr>)

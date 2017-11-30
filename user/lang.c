@@ -1189,6 +1189,82 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	    *data_type = STRING_T;
 	}
     }
+
+    else if (is_token(next_token, "csvstr")) {
+	lang_debug("val csvstr\r\n");
+
+	len_check(7);
+	if (syn_chk && !is_token(next_token+1, "("))
+	    return syntax_error(next_token+1, "expected '('");
+
+	char *str_data;
+	int str_data_len;
+	Value_Type str_data_type;
+	// parse path string
+	if ((next_token = parse_expression(next_token + 2, &str_data, &str_data_len, &str_data_type, doit)) == -1)
+	    return -1;
+	if (!doit)
+	    str_data_len = 0;
+	char str[str_data_len+1];
+	if (doit)
+	    os_strcpy(str, str_data);
+
+	if (syn_chk && !is_token(next_token, ","))
+	    return syntax_error(next_token, "expected ','");
+	next_token++;
+
+	int16_t num = atoi(my_token[next_token]);
+	if (num == 0)
+	    return syntax_error(next_token, "value > 0 expected");
+	num--;
+	next_token++;
+
+	if (syn_chk && !is_token(next_token, ","))
+	    return syntax_error(next_token, "expected ','");
+	next_token++;
+
+	uint8_t ch = my_token[next_token][0];
+	// if as string const
+	if (my_token[next_token][0] == '"')
+	    ch = my_token[next_token][1];
+	next_token++;
+
+	if (syn_chk && !is_token(next_token, ")"))
+	    return syntax_error(next_token, "expected ')'");
+	next_token++;
+
+	if (doit) {
+	    int i;
+	    char *p, *q;
+
+	    for (i=0, p=q=str_data; i<=num; p++) {
+		if (*p == ch || *p == '\0') {
+		    i++;
+		    if (i > num) {
+			break;
+		    }
+		    q=p+1;
+		}
+		if (*p == '\0')
+		    break;
+	    }
+
+	    if (i<=num) {
+		*data_len = 0;
+		*data = "";		
+	    } else {
+		uint16_t len = p-q;
+		if (len > sizeof(tmp_buffer)-1)
+		    len = sizeof(tmp_buffer)-1;
+		os_strncpy(tmp_buffer, q, len);
+		tmp_buffer[len] = '\0';
+
+		*data_len = len;
+		*data = tmp_buffer;
+	    }
+	    *data_type = STRING_T;
+	}
+    }
 #ifdef GPIO
     else if (is_token(next_token, "gpio_in")) {
 	lang_debug("val gpio_in\r\n");
