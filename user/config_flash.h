@@ -49,6 +49,9 @@ typedef struct
     uint16_t	config_port;	// Port on which the concole listenes (0 if no access)
     uint8_t	config_access;	// Controls the interfaces that allow config access (default LOCAL_ACCESS | REMOTE_ACCESS)
 
+    uint8_t	system_output;	// Disable system info and warnings
+    uint32_t	bit_rate;	// Bit rate of serial link
+
     uint16_t	max_subscriptions;	// Upper limit on subscribed topics
     uint16_t	max_retained_messages;	// Upper limit on stored retained messages
     uint16_t	max_clients;	// Upper limit on concurrently connected clients (0: mem is the limit)

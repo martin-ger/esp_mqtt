@@ -29,7 +29,10 @@ void config_load_default(sysconfig_p config) {
     config->dns_addr.addr = 0;	// use DHCP
     config->my_addr.addr = 0;	// use DHCP   
     config->my_netmask.addr = 0;	// use DHCP   
-    config->my_gw.addr = 0;	// use DHCP   
+    config->my_gw.addr = 0;	// use DHCP
+
+    config->system_output = 1;
+    config->bit_rate = 115200;  
 
     config->mdns_mode = 0;	// no mDNS
 

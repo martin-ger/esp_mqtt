@@ -72,6 +72,7 @@ uint8_t remote_console_disconnect;
 struct espconn *console_conn;
 bool client_sent_pending;
 
+LOCAL ICACHE_FLASH_ATTR void void_write_char(char c) {}
 
 void ICACHE_FLASH_ATTR to_console(char *str) {
     ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
@@ -453,7 +454,9 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 	os_sprintf(response, "set [ssid|password|auto_connect|ap_ssid|ap_password|ap_on|ap_open] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [network|dns|ip|netmask|gw|config_port|config_access] <val>\r\n");
+	os_sprintf(response, "set [network|dns|ip|netmask|gw] <val>\r\n");
+	to_console(response);
+	os_sprintf(response, "set [config_port|config_access|bitrate|system_output] <val>\r\n");
 	to_console(response);
 	os_sprintf(response, "set [broker_user|broker_password|broker_access|broker_clients] <val>\r\n");
 	to_console(response);
@@ -571,6 +574,12 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 	    os_sprintf(response, "Clock speed: %d\r\n", config.clock_speed);
 	    to_console(response);
+
+	    os_sprintf(response, "Serial bitrate: %d\r\n", config.bit_rate);
+	    to_console(response);
+	    if (!config.system_output)
+                to_console("System output: off\r\n");
+
 	    goto command_handled_2;
 	}
 
@@ -1067,9 +1076,24 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		goto command_handled;
 	    }
 
+            if (strcmp(tokens[1],"bitrate") == 0)
+            {
+                config.bit_rate = atoi(tokens[2]);
+                os_sprintf(response, "Bitrate set to %d\r\n", config.bit_rate);
+                goto command_handled;
+            }
+
+            if (strcmp(tokens[1],"system_output") == 0)
+            {
+                config.system_output = atoi(tokens[2]);
+                os_sprintf(response, "System output %s\r\n", config.system_output?"on":"off");
+                goto command_handled;
+            }
+
 	    if (strcmp(tokens[1], "network") == 0) {
 		config.network_addr.addr = ipaddr_addr(tokens[2]);
 		ip4_addr4(&config.network_addr) = 0;
+		os_sprintf(response, "Network set to %d.%d.%d.%d\r\n", IP2STR(&config.network_addr));
 		goto command_handled;
 	    }
 
@@ -1703,6 +1727,7 @@ void  user_init() {
 #endif
     init_long_systime();
 
+    // Temporarily initialize the UART with 115200
     UART_init_console(BIT_RATE_115200, 0, console_rx_buffer, console_tx_buffer);
 
     os_printf("\r\n\r\nWiFi Router/MQTT Broker V2.0 starting\r\n");
@@ -1735,6 +1760,15 @@ void  user_init() {
 	blob_zero(VARS_SLOT, MAX_FLASH_SLOTS * FLASH_SLOT_LEN);
     }
 #endif
+
+    // Set bit rate to config value
+    uart_div_modify(0, UART_CLK_FREQ / config.bit_rate);
+
+    if (!config.system_output) {
+	// all system output to /dev/null
+	system_set_os_print(0);
+	os_install_putc1(void_write_char);
+    }
 
     // Configure the AP and start it, if required
 

@@ -40,6 +40,8 @@ General commands:
 - set speed [80|160]: sets the CPU clock frequency (default 80 Mhz)
 - set config_port _portno_: sets the port number of the console login (default is 7777, 0 disables remote console config)
 - set config_access _mode_: controls the networks that allow config access (0: no access, 1: only internal, 2: only external, 3: both (default))
+- set bitrate [bps]: sets the serial bitrate (default 115200 bps)
+- set system_output [0|1]: enables/disables system info/warning output to serial port (default: on=1)
 - quit: terminates a remote session
 
 WiFi and network related commands:
