@@ -43,3 +43,6 @@ void script_connected_cb(void *arg);
 
 void console_handle_command(struct espconn *pespconn);
 void to_console(char *str);
+void do_command(char *t1, char *t2, char *t3);
+void con_print(uint8_t *str);
+void serial_out(uint8_t *str);

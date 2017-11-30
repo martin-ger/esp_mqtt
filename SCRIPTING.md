@@ -34,8 +34,9 @@ In general, scripts conform to the following BNF:
 	    mqttconnect |
             timer <num> |
             alarm <num> |
-            gpio_interrupt <num> (pullup|nopullup) |
             topic (local|remote) <topic-id> |
+            gpio_interrupt <num> (pullup|nopullup) |
+            serial |
             http_response
 
 <action> ::= publish (local|remote) <topic-id> <expr> [retained] |
@@ -49,6 +50,7 @@ In general, scripts conform to the following BNF:
              gpio_pinmode <num> (input|output) [pullup] |
              gpio_out <num> <expr> |
              gpio_pwm <num> <num> |
+             serial_out <expr> |
              if <expr> then <action> [else <action>] endif |
 	     print <expr> | println <expr> |
 	     system <expr> |
@@ -56,13 +58,14 @@ In general, scripts conform to the following BNF:
 
 <expr> ::= <val> | <val> <op> <expr> | (<expr>) | not (<expr>) |
            retained_topic(<expr>) | substr(<expr>,<num>,<num>) |
-           csvstr(<expr>,<num>,<char>) | json_parse (<expr>,<expr>)
+           csvstr(<expr>,<num>,<char>) | eatwhite (<expr>) |
+           json_parse (<expr>,<expr>)
 
 <op> := '=' | '>' | gte | str_ge | str_gte | '+' | '-' | '*' | '|' | div
 
 <val> := <string> | <const> | #<hex-string> | $[any ASCII]* | @<num> |
-         gpio_in(<num>) | $adc | $this_item | $this_data | $this_gpio | 
-         $this_http_code | $this_http_body | $timestamp | $weekday
+         gpio_in(<num>) | $adc | $this_item | $this_data | $this_serial |
+	 $this_gpio | $this_http_code | $this_http_body | $timestamp | $weekday
 
 <string> := "[any ASCII]*" | [any ASCII]*
 
@@ -110,6 +113,11 @@ This event happens when the timer with the given number expires. Timers are set 
 alarm <num>
 ```
 This event happens when the time-of-day stored in the alarm with the given number is reached. It happens once per day. Alarm times are given as "hh:mm:ss" and are only available if NTP is enabled. Make sure to set the correct "ntp_timezone" to adjust UTC to your location.
+
+```
+serial
+```
+This event happens when the "system_output" mode is set to 0 and a carriage return (CR)-terminated string has been received from the serial input. Instead of interpreting it as cli command it is forwarded to the scripting engine. The input value is availabe via the special variable _$this_serial_.
 
 ```
 gpio_interrupt <num> (pullup|nopullup)
@@ -178,6 +186,11 @@ gpio_pwm <num> <num>
 Defines the GPIO pin num as PWM output and sets the PWM duty cycle to the given value. The value should be in the range from 0-1000 (0 = off, 1000 = full duty). By default the PWM frequency is 1000Hz. It can be changed with the _pwm_period_ config parameter.
 
 ```
+serial_out <expr>
+```
+Sends the given expression to serial port.
+
+```
 system <expr>
 ```
 Executes the given expression as if it has been issued on the CLI. Useful e.g. for "save", "lock" or "reset" commands.
@@ -214,7 +227,12 @@ Extracts characters from a string. The two constant numbers give the starting po
 ```
 csvstr(<expr>,<num>,<char>)
 ```
-Extracts strings from a CSV-list (correctly a string with a delimiter character). The constant number gives the position (first is postion 1) and the char is the delimiter. Examples: csvstr("one,two,three", 2, ",") is "two", csvstr("system/test/1", 2, "/") is "test"
+Extracts strings from a CSV-list (correctly a string with a delimiter character). The constant number gives the position (first is postion 1) and the char is the delimiter. Examples: csvstr("one,two,three", 2, ",") is "two", csvstr("system/test/1", 2, "/") is "test".
+
+```
+eatwhite(<expr>)
+```
+Eliminates all whitespaces from a string.
 
 ```
 json_parse (<expr>,<expr>)

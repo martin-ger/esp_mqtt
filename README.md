@@ -39,9 +39,9 @@ General commands:
 - reset [factory]: resets the esp, 'factory' optionally resets WiFi params to default values (works on a locked device only from serial console)
 - set speed [80|160]: sets the CPU clock frequency (default 80 Mhz)
 - set config_port _portno_: sets the port number of the console login (default is 7777, 0 disables remote console config)
-- set config_access _mode_: controls the networks that allow config access (0: no access, 1: only internal, 2: only external, 3: both (default))
+- set config_access [0|1|2|3]: controls the networks that allow config access (0: no access, 1: only internal, 2: only external, 3: both (default))
 - set bitrate [bps]: sets the serial bitrate (default 115200 bps)
-- set system_output [0|1]: enables/disables system info/warning output to serial port (default: on=1)
+- set system_output [0|1|2]: configures systems handling of the serial port (0: none/script, 1: cli commands/responses, 2: cli and info/warnings (default)). Mode 0 means, that any serial input is forwarded to the scripting engine if enabled
 - quit: terminates a remote session
 
 WiFi and network related commands:
@@ -57,7 +57,7 @@ WiFi and network related commands:
 - set ip dhcp: configures dynamic IP address for the ESP in the uplink network, default
 - set netmask _netmask_: sets a static netmask for the uplink network
 - set gw _gw-addr_: sets a static gateway address in the uplink network
-- set mdns_mode [0|1|2]: selects, which interface should be announced via mDNS (0=none (default), 1 = STA, 2 = SoftAP)
+- set mdns_mode [0|1|2]: selects, which interface should be announced via mDNS (0: none (default), 1: STA, 2: SoftAP)
 - scan: does a scan for APs
 
 While the user interface looks similar to my esp_wifi_repeater at https://github.com/martin-ger/esp_wifi_repeater this does NO NAT routing. AP and STA network are stricly separated and there is no routing in between. The only possible connection via both networks is the uMQTT broker that listens on both interfaces.

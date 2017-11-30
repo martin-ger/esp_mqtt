@@ -31,7 +31,7 @@ void config_load_default(sysconfig_p config) {
     config->my_netmask.addr = 0;	// use DHCP   
     config->my_gw.addr = 0;	// use DHCP
 
-    config->system_output = 1;
+    config->system_output = SYSTEM_OUTPUT_INFO;
     config->bit_rate = 115200;  
 
     config->mdns_mode = 0;	// no mDNS

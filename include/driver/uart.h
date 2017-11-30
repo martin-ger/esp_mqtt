@@ -229,5 +229,6 @@ void UART_init_console(UartBautRate uart0_br,
                        ringbuf_t rxbuffer,
                        ringbuf_t txBuffer);
 
+int UART_Echo(uint8 echo);
 #endif
 

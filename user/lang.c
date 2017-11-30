@@ -2,10 +2,8 @@
 #include "mem.h"
 #include "osapi.h"
 #include "lang.h"
-#include "user_config.h"
-#include "config_flash.h"
-#include "mqtt/mqtt_topics.h"
-#include "mqtt/mqtt_retainedlist.h"
+#include "global.h"
+
 #ifdef NTP
 #include "ntp.h"
 #endif
@@ -29,10 +27,6 @@
 
 #define lang_log(...) 	{if (lang_logging){char log_buffer[256]; os_sprintf (log_buffer, "%s: ", get_timestr()); con_print(log_buffer); os_sprintf (log_buffer, __VA_ARGS__); con_print(log_buffer);}}
 //#define lang_log	//os_printf
-
-extern uint8_t *my_script;
-extern void do_command(char *t1, char *t2, char *t3);
-extern void con_print(uint8_t *str);
 
 static char EOT[] = "end of text";
 #define len_check(x) \
@@ -72,6 +66,9 @@ char *interpreter_data;
 int interpreter_data_len;
 int interpreter_timer;
 int interpreter_timestamp;
+bool in_serial_statement;
+char *interpreter_serial_data;
+int interpreter_serial_data_len;
 #ifdef GPIO
 bool in_gpio_statement;
 int interpreter_gpio;
@@ -464,6 +461,7 @@ int ICACHE_FLASH_ATTR parse_statement(int next_token) {
     while ((next_token = syn_chk ? next_token : search_token(next_token, "on")) < max_token) {
 
 	in_topic_statement = false;
+	in_serial_statement = false;
 #ifdef GPIO
 	in_gpio_statement = false;
 #endif
@@ -588,6 +586,16 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	}
 	return next_token + 2;
     }
+
+    if (is_token(next_token, "serial")) {
+	lang_debug("event serial\r\n");
+	in_serial_statement = true;
+
+	*happend = (interpreter_status == SERIAL_INPUT);
+	if (*happend)
+	    lang_log("on serial\r\n");
+	return next_token + 1;
+    }
 #ifdef GPIO
     if (is_token(next_token, "gpio_interrupt")) {
 	lang_debug("event gpio\r\n");
@@ -632,7 +640,7 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	return next_token + 1;
     }
 #endif
-    return syntax_error(next_token, "'init', 'mqttconnect', 'topic', 'gpio_interrupt', 'alarm', 'http_response', or 'timer' expected");
+    return syntax_error(next_token, "'init', 'mqttconnect', 'topic', 'gpio_interrupt', 'serial', 'alarm', 'http_response', or 'timer' expected");
 }
 
 int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
@@ -659,6 +667,20 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 		con_print(p_char);
 		if (is_nl)
 		    con_print("\r\n");
+	    }
+	}
+
+	else if (is_token(next_token, "serial_out")) {
+	    char *p_char;
+	    int p_len;
+	    Value_Type p_type;
+
+	    len_check(1);
+	    if ((next_token = parse_expression(next_token + 1, &p_char, &p_len, &p_type, doit)) == -1)
+		return -1;
+	    if (doit) {
+		lang_log("serial_out '%s'\r\n", p_char);
+		serial_out(p_char);
 	    }
 	}
 
@@ -1131,6 +1153,47 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	    }
 	}
     }
+
+    else if (is_token(next_token, "eatwhite")) {
+	lang_debug("val eatwhite\r\n");
+
+	len_check(3);
+	if (syn_chk && !is_token(next_token+1, "("))
+	    return syntax_error(next_token+1, "expected '('");
+
+	char *str_data;
+	int str_data_len;
+	Value_Type str_data_type;
+	// parse path string
+	if ((next_token = parse_expression(next_token + 2, &str_data, &str_data_len, &str_data_type, doit)) == -1)
+	    return -1;
+	if (!doit)
+	    str_data_len = 0;
+	char str[str_data_len+1];
+	if (doit)
+	    os_strcpy(str, str_data);
+
+	if (syn_chk && !is_token(next_token, ")"))
+	    return syntax_error(next_token, "expected ')'");
+	next_token++;
+
+	if (doit) {
+	    int i, j;
+	
+	    for (i=0, j=0; i<str_data_len; i++){
+		if (!isspace(str[i])) {
+		    tmp_buffer[j] = str[i];
+		    j++;
+		}
+	    }
+	    tmp_buffer[j] = '\0';
+
+	    *data_len = j;
+	    *data = tmp_buffer;
+	    *data_type = STRING_T;
+	}
+    }
+
     else if (is_token(next_token, "substr")) {
 	lang_debug("val substr\r\n");
 
@@ -1216,7 +1279,6 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	int16_t num = atoi(my_token[next_token]);
 	if (num == 0)
 	    return syntax_error(next_token, "value > 0 expected");
-	num--;
 	next_token++;
 
 	if (syn_chk && !is_token(next_token, ","))
@@ -1237,7 +1299,7 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	    int i;
 	    char *p, *q;
 
-	    for (i=0, p=q=str_data; i<=num; p++) {
+	    for (i=0, p=q=str; i<=num; p++) {
 		if (*p == ch || *p == '\0') {
 		    i++;
 		    if (i > num) {
@@ -1496,6 +1558,17 @@ int ICACHE_FLASH_ATTR parse_value(int next_token, char **data, int *data_len, Va
 	*data_type = STRING_T;
 	return next_token + 1;
     }
+
+    else if (is_token(next_token, "$this_serial")) {
+	lang_debug("val $this_serial\r\n");
+
+	if (!in_serial_statement)
+	    return syntax_error(next_token, "undefined $this_serial");
+	*data = interpreter_serial_data;
+	*data_len = interpreter_serial_data_len;
+	*data_type = DATA_T;
+	return next_token + 1;
+    }
 #ifdef GPIO
     else if (is_token(next_token, "$this_gpio")) {
 	lang_debug("val $this_gpio\r\n");
@@ -1731,6 +1804,19 @@ int ICACHE_FLASH_ATTR interpreter_topic_received(const char *topic, const char *
     interpreter_topic = (char *)topic;
     interpreter_data = data_null;
     interpreter_data_len = data_len;
+
+    return parse_statement(0);
+}
+
+int ICACHE_FLASH_ATTR interpreter_serial_input(const char *data, int data_len) {
+    if (!script_enabled)
+	return -1;
+
+    lang_debug("interpreter_topic_received\r\n");
+
+    interpreter_status = SERIAL_INPUT;
+    interpreter_serial_data = (char *)data;
+    interpreter_serial_data_len = data_len;
 
     return parse_statement(0);
 }

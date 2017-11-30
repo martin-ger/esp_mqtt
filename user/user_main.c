@@ -44,6 +44,8 @@ static void user_procTask(os_event_t * events);
 
 static os_timer_t ptimer;
 
+static int system_output;
+
 /* Some stats */
 uint64_t t_old;
 
@@ -254,7 +256,7 @@ void ICACHE_FLASH_ATTR free_script(void) {
 }
 #endif				/* SCRIPTED */
 
-void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn) {
+void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn, bool serial_force) {
     char payload[MAX_CON_SEND_SIZE];
     uint16_t len = ringbuf_bytes_used(console_tx_buffer);
 
@@ -268,13 +270,19 @@ void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn) {
 	    client_sent_pending = true;
 	}
     } else {
-	UART_Send(0, &payload, len);
+	if (system_output >= SYSTEM_OUTPUT_CMD || serial_force)
+	    UART_Send(0, payload, len);
     }
 }
 
 void ICACHE_FLASH_ATTR con_print(uint8_t *str) {
     ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
     system_os_post(user_procTaskPrio, SIG_CONSOLE_TX_RAW, (ETSParam) console_conn);
+}
+
+void ICACHE_FLASH_ATTR serial_out(uint8_t *str) {
+    ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
+    system_os_post(user_procTaskPrio, SIG_SERIAL_TX, (ETSParam) NULL);
 }
 
 bool ICACHE_FLASH_ATTR delete_retainedtopics() {
@@ -351,7 +359,7 @@ static void ICACHE_FLASH_ATTR tcp_client_sent_cb(void *arg) {
     struct espconn *pespconn = (struct espconn *)arg;
 
     client_sent_pending = false;
-    console_send_response(pespconn);
+    console_send_response(pespconn, false);
     
 }
 
@@ -472,10 +480,11 @@ static void ICACHE_FLASH_ATTR user_procTask(os_event_t * events) {
 	{
 	    ringbuf_memcpy_into(console_tx_buffer, "CMD>", 4);
 	}
+
     case SIG_CONSOLE_TX_RAW:
 	{
 	    struct espconn *pespconn = (struct espconn *)events->par;
-	    console_send_response(pespconn);
+	    console_send_response(pespconn, false);
 
 	    if (pespconn != 0 && remote_console_disconnect)
 		espconn_disconnect(pespconn);
@@ -483,10 +492,24 @@ static void ICACHE_FLASH_ATTR user_procTask(os_event_t * events) {
 	}
 	break;
 
+    case SIG_SERIAL_TX:
+	{
+	    console_send_response(NULL, true);
+	}
+	break;
+
     case SIG_CONSOLE_RX:
 	{
 	    struct espconn *pespconn = (struct espconn *)events->par;
-	    console_handle_command(pespconn);
+	    if (pespconn == 0 && system_output == SYSTEM_OUTPUT_NONE) {
+		int bytes_count = ringbuf_bytes_used(console_rx_buffer);
+		char data[bytes_count+1];
+		ringbuf_memcpy_from(data, console_rx_buffer, bytes_count);
+		data[bytes_count] = '\0';
+		interpreter_serial_input(data, bytes_count);
+	    } else {
+		console_handle_command(pespconn);
+	    }
 	}
 	break;
 
@@ -761,10 +784,15 @@ void  user_init() {
     // Set bit rate to config value
     uart_div_modify(0, UART_CLK_FREQ / config.bit_rate);
 
-    if (!config.system_output) {
+    system_output = config.system_output;
+    if (system_output < SYSTEM_OUTPUT_INFO) {
 	// all system output to /dev/null
 	system_set_os_print(0);
 	os_install_putc1(void_write_char);
+    }
+    if (system_output < SYSTEM_OUTPUT_CMD) {
+	// disable UART echo
+	UART_Echo(0);
     }
 
     // Configure the AP and start it, if required

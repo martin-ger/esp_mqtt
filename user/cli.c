@@ -263,9 +263,10 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
 	    os_sprintf(response, "Serial bitrate: %d\r\n", config.bit_rate);
 	    to_console(response);
-	    if (!config.system_output)
-                to_console("System output: off\r\n");
-
+	    if (config.system_output < SYSTEM_OUTPUT_INFO) {
+                os_sprintf(response, "System output: %s\r\n", config.system_output==SYSTEM_OUTPUT_NONE?"none":"command reply");
+		to_console(response);
+	    }
 	    goto command_handled_2;
 	}
 
@@ -768,7 +769,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
             if (strcmp(tokens[1],"system_output") == 0)
             {
                 config.system_output = atoi(tokens[2]);
-                os_sprintf(response, "System output %s\r\n", config.system_output?"on":"off");
+                os_sprintf(response, "System output set to %d\r\n", config.system_output);
                 goto command_handled;
             }
 

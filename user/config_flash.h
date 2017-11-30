@@ -15,6 +15,10 @@
 
 #define MAGIC_NUMBER    0x015005fd
 
+#define SYSTEM_OUTPUT_INFO	2
+#define SYSTEM_OUTPUT_CMD	1
+#define SYSTEM_OUTPUT_NONE	0
+
 typedef struct
 {
     // To check if the structure is initialized or not in flash

@@ -29,6 +29,7 @@
 
 #ifdef _ENABLE_CONSOLE_INTEGRATION
     uint8_t linked_to_console = 0;
+    uint8_t echo_on = 1;
 #endif
 
 extern UartDevice    UartDev;
@@ -68,6 +69,7 @@ void ICACHE_FLASH_ATTR UART_init_console(UartBautRate uart0_br,
     rxBuff = rxbuffer;
     txBuff = txBuffer;
     linked_to_console = 1;
+    echo_on = 1;
 
     uart_config(UART0);
     UART_SetPrintPort(UART0);
@@ -224,6 +226,11 @@ int UART_Recv(uint8 uart_no, char *buffer, int max_buf_len)
     return index;
 }
 
+int ICACHE_FLASH_ATTR UART_Echo(uint8 echo)
+{
+    echo_on = echo;
+}
+
 int UART_Send(uint8 uart_no, char *buffer, int len)
 {
     int     index = 0;
@@ -311,7 +318,9 @@ static void uart0_rx_intr_handler(void *para)
                 //if (ch == '\r') ch = '\n';
 	        ringbuf_memcpy_into(rxBuff, &ch, 1);
                 #if _ENABLE_CONSOLE_INTEGRATION == 1
-                uart_tx_one_char(uart_no, ch);
+                if (echo_on){
+		    uart_tx_one_char(uart_no, ch);
+		}
                 if (ch == '\r')
                 {
                     system_os_post(0, SIG_CONSOLE_RX, 0);
