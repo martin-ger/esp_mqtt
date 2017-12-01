@@ -1277,8 +1277,6 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 	next_token++;
 
 	int16_t num = atoi(my_token[next_token]);
-	if (num == 0)
-	    return syntax_error(next_token, "value > 0 expected");
 	next_token++;
 
 	if (syn_chk && !is_token(next_token, ","))
@@ -1325,6 +1323,71 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 		*data = tmp_buffer;
 	    }
 	    *data_type = STRING_T;
+	}
+    }
+
+    else if (is_token(next_token, "byte_val")) {
+	lang_debug("val byte_val\r\n");
+
+	len_check(5);
+	if (syn_chk && !is_token(next_token+1, "("))
+	    return syntax_error(next_token+1, "expected '('");
+
+	char *str_data;
+	int str_data_len;
+	Value_Type str_data_type;
+	// parse path string
+	if ((next_token = parse_expression(next_token + 2, &str_data, &str_data_len, &str_data_type, doit)) == -1)
+	    return -1;
+
+	if (syn_chk && !is_token(next_token, ","))
+	    return syntax_error(next_token, "expected ','");
+	next_token++;
+
+	int16_t num = atoi(my_token[next_token]);
+	next_token++;
+
+	if (syn_chk && !is_token(next_token, ")"))
+	    return syntax_error(next_token, "expected ')'");
+	next_token++;
+
+	if (doit) {
+	    if (num >= str_data_len) {
+		*data_len = 0;
+		*data = "";
+	    } else {
+		os_sprintf(tmp_buffer, "%d", str_data[num]);
+		*data_len = os_strlen(tmp_buffer);
+		*data = tmp_buffer;
+	    }
+	    *data_type = STRING_T;
+	}
+    }
+
+    else if (is_token(next_token, "binary")) {
+	lang_debug("val binary\r\n");
+
+	len_check(3);
+	if (syn_chk && !is_token(next_token+1, "("))
+	    return syntax_error(next_token+1, "expected '('");
+
+	char *str_data;
+	int str_data_len;
+	Value_Type str_data_type;
+	// parse path string
+	if ((next_token = parse_expression(next_token + 2, &str_data, &str_data_len, &str_data_type, doit)) == -1)
+	    return -1;
+
+	if (syn_chk && !is_token(next_token, ")"))
+	    return syntax_error(next_token, "expected ')'");
+	next_token++;
+
+	if (doit) {
+	    tmp_buffer[0] = atoi(str_data);
+	    tmp_buffer[1] = '\0';
+	    *data = tmp_buffer;
+	    *data_len = 1;
+	    *data_type = DATA_T;
 	}
     }
 #ifdef GPIO
@@ -1436,6 +1499,15 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
     int r_data_len;
     Value_Type r_data_type;
 
+    if (!doit) {
+	*data_len = 0;
+    }
+    char l_data[*data_len+1];
+    if (doit) {
+	os_memcpy(l_data, *data, *data_len);
+    }
+    l_data[*data_len] = '\0';
+
     // parse second operand
     if ((next_token = parse_expression(next_token + 1, &r_data, &r_data_len, &r_data_type, doit)) == -1)
 	return -1;
@@ -1446,45 +1518,53 @@ int ICACHE_FLASH_ATTR parse_expression(int next_token, char **data, int *data_le
 
     *data_type = STRING_T;
     if (is_token(op, "=")) {
-	*data = os_strcmp(*data, r_data) ? "0" : "1";
+	*data = os_strcmp(l_data, r_data) ? "0" : "1";
     } else if (is_token(op, "+")) {
-	 os_sprintf(tmp_buffer, "%d", atoi(*data) + atoi(r_data));
+	 os_sprintf(tmp_buffer, "%d", atoi(l_data) + atoi(r_data));
 	 *data = tmp_buffer;
 	 *data_len = os_strlen(tmp_buffer);
     } else if (is_token(op, "-")) {
-	os_sprintf(tmp_buffer, "%d", atoi(*data) - atoi(r_data));
+	os_sprintf(tmp_buffer, "%d", atoi(l_data) - atoi(r_data));
 	*data = tmp_buffer;
 	*data_len = os_strlen(tmp_buffer);
     } else if (is_token(op, "*")) {
-	os_sprintf(tmp_buffer, "%d", atoi(*data) * atoi(r_data));
+	os_sprintf(tmp_buffer, "%d", atoi(l_data) * atoi(r_data));
 	*data = tmp_buffer;
 	*data_len = os_strlen(tmp_buffer);
     } else if (is_token(op, "div")) {
-	os_sprintf(tmp_buffer, "%d", atoi(*data) / atoi(r_data));
+	os_sprintf(tmp_buffer, "%d", atoi(l_data) / atoi(r_data));
 	*data = tmp_buffer;
 	*data_len = os_strlen(tmp_buffer);
     } else if (is_token(op, "|")) {
-	uint16_t len = os_strlen(*data) + os_strlen(r_data);
+/*
+	uint16_t len = os_strlen(l_data) + os_strlen(r_data);
 	char catbuf[len+1];
-	os_sprintf(catbuf, "%s%s", *data, r_data);
+	os_sprintf(catbuf, "%s%s", l_data, r_data);
+*/
+	uint16_t len = *data_len + r_data_len;
+	char catbuf[len+1];
+	os_memcpy(catbuf, l_data, *data_len);
+	os_memcpy(&catbuf[*data_len], r_data, r_data_len);
+
 	if (len > sizeof(tmp_buffer)-1) {
 	    len = sizeof(tmp_buffer);
-	    catbuf[len] = '\0';
 	}
+	catbuf[len] = '\0';
 	*data_len = len;
 	os_memcpy(tmp_buffer, catbuf, *data_len + 1);
 	*data = tmp_buffer;
+
     } else if (is_token(op, ">")) {
-	*data = atoi(*data) > atoi(r_data) ? "1" : "0";
+	*data = atoi(l_data) > atoi(r_data) ? "1" : "0";
 	*data_len = 1;
     } else if (is_token(op, "gte")) {
-	*data = atoi(*data) >= atoi(r_data) ? "1" : "0";
+	*data = atoi(l_data) >= atoi(r_data) ? "1" : "0";
 	*data_len = 1;
     } else if (is_token(op, "str_gt")) {
-	*data = os_strcmp(*data, r_data) > 0 ? "1" : "0";
+	*data = os_strcmp(l_data, r_data) > 0 ? "1" : "0";
 	*data_len = 1;
     } else if (is_token(op, "str_gte")) {
-	*data = os_strcmp(*data, r_data) >= 0 ? "1" : "0";
+	*data = os_strcmp(l_data, r_data) >= 0 ? "1" : "0";
 	*data_len = 1;
     }
 

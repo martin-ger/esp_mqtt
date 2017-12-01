@@ -58,6 +58,7 @@ In general, scripts conform to the following BNF:
 
 <expr> ::= <val> | <val> <op> <expr> | (<expr>) | not (<expr>) |
            retained_topic(<expr>) | substr(<expr>,<num>,<num>) |
+           binary (<expr>) | byte_val(<expr>,<num>) |
            csvstr(<expr>,<num>,<char>) | eatwhite (<expr>) |
            json_parse (<expr>,<expr>)
 
@@ -220,6 +221,16 @@ retained_topic(<expr>)
 Interpretes the argument as topic name (incl. wildcards) and searches the first local retained topic that matches this name. The stored value of this topic is returned (empty, if nothing found). Can be used to check the status of the system synchronously without the need to subscribe for that retained topic, wait for status changes and store them in a variable.
 
 ```
+binary(<expr>)
+```
+Converts the numerical value of the given expression into a single character string, e.g. binary(65) is "A".
+
+```
+byte_val(<expr>,<num>)
+```
+Converts the byte at the given position of a string (first is postion 0) into a numerical value, e.g. byte_val("ABC", 0) is "65".
+
+```
 substr(<expr>,<num>,<num>)
 ```
 Extracts characters from a string. The two constant numbers give the starting position (first is postion 0) and the length. If the starting position is negative (write it with colons as e.g. "-2"), it counts backwards from the end of the string.
@@ -227,7 +238,7 @@ Extracts characters from a string. The two constant numbers give the starting po
 ```
 csvstr(<expr>,<num>,<char>)
 ```
-Extracts strings from a CSV-list (correctly a string with a delimiter character). The constant number gives the position (first is postion 1) and the char is the delimiter. Examples: csvstr("one,two,three", 2, ",") is "two", csvstr("system/test/1", 2, "/") is "test".
+Extracts strings from a CSV-list (correctly a string with a delimiter character). The constant number gives the position (first is postion 0) and the char is the delimiter. Examples: csvstr("one,two,three", 1, ",") is "two", csvstr("system/test/1", 0, "/") is "system".
 
 ```
 eatwhite(<expr>)
@@ -269,11 +280,12 @@ gpio_in(<num>)
 Reads the current boolean input value of the given GPIO pin. This pin has to be defined as input before using the "gpio_pinmode" action.
 
 ```
-$adc | $this_item | $this_data | $this_gpio | $timestamp | $weekday | $this_http_body | $this_http_code
+$adc | $this_item | $this_data | $this_serial | $this_gpio | $timestamp | $weekday | $this_http_body | $this_http_code
 ```
 Special variables:
 - $adc gives you the current value of the ADC (analog to digital input pin)
 - $this_topic and $this_data are only defined in "on topic" clauses and contain the current topic and its data.
+- $this_serial contains the serial input string in an "on serial" clause.
 - $this_gpio contains the state of the GPIO in an "on gpio_interrupt" clause.
 - $timestamp contains the current time of day in "hh:mm:ss" format. If no NTP sync happened the time will be reported as "99:99:99". $weekday returns the day of week as three letters ("Mon","Tue",...). 
 - $this_http_body and $this_http_code are only defined inside the "on http_response" clause and contain the body of an HTTP response and the HTTP return code.
