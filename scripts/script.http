@@ -10,6 +10,7 @@ do
 
 on http_response
 do
+	println "called url: " | $this_http_host | $this_http_path
 	println "return code: " | $this_http_code
 	println $this_http_body
 	

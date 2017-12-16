@@ -77,8 +77,10 @@ int interpreter_gpioval;
 #ifdef HTTPC
 bool in_http_statement;
 int interpreter_http_status;
+char *interpreter_http_path;
+char *interpreter_http_hostname;
 
-void interpreter_http_reply(char *response_body, int http_status, char *response_headers, int body_size);
+void interpreter_http_reply(char *hostname, char *path, char *response_body, int http_status, char *response_headers, int body_size);
 #endif
 
 static os_timer_t timers[MAX_TIMERS];
@@ -1686,6 +1688,34 @@ int ICACHE_FLASH_ATTR parse_value(int next_token, char **data, int *data_len, Va
 	*data_type = STRING_T;
 	return next_token + 1;
     }
+
+    else if (is_token(next_token, "$this_http_host")) {
+	static char codebuf[4];
+	lang_debug("val $this_http_host\r\n");
+
+	if (!in_http_statement)
+	    return syntax_error(next_token, "undefined $this_http_host");
+	if (interpreter_status == HTTP_RESPONSE) {
+	    *data = interpreter_http_hostname;
+	    *data_len = os_strlen(interpreter_http_hostname);
+	    *data_type = STRING_T;
+	}
+	return next_token + 1;
+    }
+
+    else if (is_token(next_token, "$this_http_path")) {
+	static char codebuf[4];
+	lang_debug("val $this_http_path\r\n");
+
+	if (!in_http_statement)
+	    return syntax_error(next_token, "undefined $this_http_path");
+	if (interpreter_status == HTTP_RESPONSE) {
+	    *data = interpreter_http_path;
+	    *data_len = os_strlen(interpreter_http_path);
+	    *data_type = STRING_T;
+	}
+	return next_token + 1;
+    }
 #endif
 #ifdef NTP
     else if (is_token(next_token, "$timestamp")) {
@@ -1902,7 +1932,7 @@ int ICACHE_FLASH_ATTR interpreter_serial_input(const char *data, int data_len) {
 }
 
 #ifdef HTTPC
-void ICACHE_FLASH_ATTR interpreter_http_reply(char *response_body, int http_status, char *response_headers, int body_size) {
+void ICACHE_FLASH_ATTR interpreter_http_reply(char *hostname, char *path, char *response_body, int http_status, char *response_headers, int body_size) {
     if (!script_enabled)
 	return;
 
@@ -1911,6 +1941,8 @@ void ICACHE_FLASH_ATTR interpreter_http_reply(char *response_body, int http_stat
     interpreter_status = HTTP_RESPONSE;
     interpreter_topic = response_headers;
     interpreter_http_status = http_status;
+    interpreter_http_hostname = hostname;
+    interpreter_http_path = path;
     interpreter_data = response_body;
     interpreter_data_len = body_size;
 

@@ -66,7 +66,8 @@ In general, scripts conform to the following BNF:
 
 <val> := <string> | <const> | #<hex-string> | $[any ASCII]* | @<num> |
          gpio_in(<num>) | $adc | $this_item | $this_data | $this_serial |
-	 $this_gpio | $this_http_code | $this_http_body | $timestamp | $weekday
+	 $this_gpio | $timestamp | $weekday |
+         $this_http_code | $this_http_host | $this_http_path | $this_http_body
 
 <string> := "[any ASCII]*" | [any ASCII]*
 
@@ -280,7 +281,8 @@ gpio_in(<num>)
 Reads the current boolean input value of the given GPIO pin. This pin has to be defined as input before using the "gpio_pinmode" action.
 
 ```
-$adc | $this_item | $this_data | $this_serial | $this_gpio | $timestamp | $weekday | $this_http_body | $this_http_code
+$adc | $this_item | $this_data | $this_serial | $this_gpio | $timestamp | $weekday |
+$this_http_host | $this_http_path | $this_http_code | $this_http_body
 ```
 Special variables:
 - $adc gives you the current value of the ADC (analog to digital input pin)
@@ -288,7 +290,7 @@ Special variables:
 - $this_serial contains the serial input string in an "on serial" clause.
 - $this_gpio contains the state of the GPIO in an "on gpio_interrupt" clause.
 - $timestamp contains the current time of day in "hh:mm:ss" format. If no NTP sync happened the time will be reported as "99:99:99". $weekday returns the day of week as three letters ("Mon","Tue",...). 
-- $this_http_body and $this_http_code are only defined inside the "on http_response" clause and contain the body of an HTTP response and the HTTP return code.
+- $this_http_code, $this_http_host, $this_http_path, and $this_http_body are only defined inside the "on http_response" clause and contain the HTTP return code, the URL host and path of the request, and the body of an HTTP response.
 
 ## Operators
 Operators are used to combine values and expressions.

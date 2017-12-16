@@ -22,7 +22,7 @@
  * A successful request corresponds to an HTTP status code of 200 (OK).
  * More info at http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
  */
-typedef void (* http_callback)(char * response_body, int http_status, char * response_headers, int body_size);
+typedef void (* http_callback)(char* hostname, char* path, char * response_body, int http_status, char * response_headers, int body_size);
 
 /*
  * Download a web page from its URL.

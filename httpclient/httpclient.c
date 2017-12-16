@@ -339,7 +339,7 @@ static void ICACHE_FLASH_ATTR disconnect_callback(void * arg)
 		}
 
 		if (req->user_callback != NULL) { // Callback is optional.
-			req->user_callback(body, http_status, req->buffer, body_size);
+			req->user_callback(req->hostname, req->path, body, http_status, req->buffer, body_size);
 		}
 
 		os_free(req->buffer);
@@ -367,7 +367,7 @@ static void ICACHE_FLASH_ATTR dns_callback(const char * hostname, ip_addr_t * ad
 	if (addr == NULL) {
 		os_printf("DNS failed for %s\n", hostname);
 		if (req->user_callback != NULL) {
-			req->user_callback("", -1, "", 0);
+			req->user_callback(req->hostname, req->path, "", -1, "", 0);
 		}
 		os_free(req->buffer);
 		os_free(req->post_data);
