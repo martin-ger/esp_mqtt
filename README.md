@@ -46,7 +46,8 @@ General commands:
 
 WiFi and network related commands:
 
-- set [ssid|password] _value_: changes the settings for the uplink AP (WiFi config of your home-rou- set [ap_ssid|ap_password] _value_: changes the settings for the soft-AP of the ESP (for your stations)ter)
+- set [ssid|password] _value_: changes the settings for the uplink AP (WiFi config of your home-router)
+- set [ap_ssid|ap_password] _value_: changes the settings for the soft-AP of the ESP (for your stations)
 - set ap_on [0|1]: selects, whether the soft-AP is disabled (ap_on=0) or enabled (ap_on=1, default)
 - set ap_open [0|1]: selects, whether the soft-AP uses WPA2 security (ap_open=0,  automatic, if an ap_password is set) or open (ap_open=1)
 - set auto_connect [0|1]: selects, whether the WiFi client should automatically retry to connect to the uplink AP (default: on=1)
