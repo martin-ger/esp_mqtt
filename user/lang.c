@@ -4,6 +4,8 @@
 #include "lang.h"
 #include "global.h"
 
+#ifdef SCRIPTED
+
 #ifdef NTP
 #include "ntp.h"
 #endif
@@ -1949,4 +1951,6 @@ void ICACHE_FLASH_ATTR interpreter_http_reply(char *hostname, char *path, char *
     parse_statement(0);
 }
 #endif
+
+#endif /* SCRIPTED */
 

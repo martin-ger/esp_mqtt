@@ -257,8 +257,8 @@ void ICACHE_FLASH_ATTR free_script(void) {
 #endif				/* SCRIPTED */
 
 void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn, bool serial_force) {
-    char payload[MAX_CON_SEND_SIZE];
     uint16_t len = ringbuf_bytes_used(console_tx_buffer);
+    char payload[len];
 
     if (len == 0)
 	return;
@@ -270,8 +270,18 @@ void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn, bool seri
 	    client_sent_pending = true;
 	}
     } else {
-	if (system_output >= SYSTEM_OUTPUT_CMD || serial_force)
+	if (system_output >= SYSTEM_OUTPUT_CMD || serial_force) {
 	    UART_Send(0, payload, len);
+	}
+#ifdef BACKLOG
+	if (backlog_buffer != NULL) {
+	    char outbuf[10];
+	    if (ringbuf_bytes_free(backlog_buffer) < len && !ringbuf_is_empty(backlog_buffer)) {
+		ringbuf_memcpy_from(outbuf, backlog_buffer, sizeof(outbuf));
+	    }
+	    ringbuf_memcpy_into(backlog_buffer, payload, len);
+	}
+#endif
     }
 }
 
@@ -506,7 +516,9 @@ static void ICACHE_FLASH_ATTR user_procTask(os_event_t * events) {
 		char data[bytes_count+1];
 		ringbuf_memcpy_from(data, console_rx_buffer, bytes_count);
 		data[bytes_count] = '\0';
+#ifdef SCRIPTED
 		interpreter_serial_input(data, bytes_count);
+#endif
 	    } else {
 		console_handle_command(pespconn);
 	    }
@@ -739,6 +751,9 @@ void  user_init() {
     do_ip_config = false;
     my_ip.addr = 0;
     t_old = 0;
+#ifdef BACKLOG
+    backlog_buffer = NULL;
+#endif
 
     console_rx_buffer = ringbuf_new(MAX_CON_CMD_SIZE);
     console_tx_buffer = ringbuf_new(MAX_CON_SEND_SIZE);

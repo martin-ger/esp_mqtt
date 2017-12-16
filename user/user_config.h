@@ -99,6 +99,11 @@
 #define CONSOLE_SERVER_PORT  7777
 
 //
+// Define this to support console backlog
+//
+#define BACKLOG      1
+
+//
 // Size of the console buffers
 //
 #define MAX_CON_SEND_SIZE    1024

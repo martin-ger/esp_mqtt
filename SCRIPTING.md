@@ -129,7 +129,7 @@ This event happens when the GPIO pin with the given number generates an interrup
 ```
 http_response
 ```
-This event happens when an HTTP-request has been sent with "http_get" and a response arrives. The actual body of the response can be accessed in the actions via the special variable _$this_http_body_, the HTTP return code via the special variable _$this_http_code_. These variables are only defined inside the "on http_response" clause.
+This event happens when an HTTP-request has been sent with "http_get" or "http_post" and a response arrives. The actual body of the response can be accessed in the actions via the special variable _$this_http_body_, the HTTP return code via the special variable _$this_http_code_. To identify responses from multiple requests the special variables _$this_http_host_ and _$this_http_path_ can be tested. They contain the host and the path of the request. All these variables are only defined inside the "on http_response" clause.
 
 ## Actions
 ```

@@ -41,6 +41,10 @@ void http_script_cb(char *response_body, int http_status, char *response_headers
 void script_connected_cb(void *arg);
 #endif
 
+#ifdef BACKLOG
+ringbuf_t backlog_buffer;
+#endif
+
 void console_handle_command(struct espconn *pespconn);
 void to_console(char *str);
 void do_command(char *t1, char *t2, char *t3);

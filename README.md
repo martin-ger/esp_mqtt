@@ -102,12 +102,18 @@ The esp_uMQTT_broker comes with a build-in scripting engine. A script enables th
 
 The script specific CLI commands are:
 
-- script [_portno_|delete]: opens port for upload of scripts or deletes the current script
+- script [_portno_|url|delete]: opens port for upload of scripts, downloads a script from an URL, or just deletes the current one
 - show script [_line_no_]: dumps the currently active script starting with the given line (dumpy only about 1 KB, repeat command for more lines)
 - set @[num] _value_: sets the flash variable "num" (for use in scripts) to the given inital value (must be shorter than 63 chars)
 - set pwm_period _period_: sets the PWM period in terms of 200ns slots (default: 5000, = 0.1ms ^= 1KHz)
 - show vars: dumps all variables of the current program incl. the persistent flash variables
+
+Debug commands:
 - set script_logging [0|1]: switches logging of script execution on or off (not permanently stored in the configuration)
+- set backlog _buffersize_: sets the size of the backlog buffer (0 = backlog off, default, not permanently stored in the configuration)
+- show backlog: dumps the backlog to the remote console
+
+The backlog buffer stores the most recent console outputs of the running script and the CLI. If you detect an error situation you can log into the remote console and dump the recent output with "show backlog".
 
 Scripts with size up to 4KB are uploaded to the esp_uMQTT_broker using a network interface. 
 

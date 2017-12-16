@@ -337,6 +337,21 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 	    goto command_handled_2;
 	}
+#ifdef BACKLOG
+	if (nTokens >= 2 && strcmp(tokens[1], "backlog") == 0) {
+	    uint16_t len;
+	    if (backlog_buffer == NULL)
+		goto command_handled_2;
+	    while (ringbuf_bytes_free(console_tx_buffer) && (len=ringbuf_bytes_used(backlog_buffer))) {
+		if (len > sizeof(response)-1)
+		    len = sizeof(response)-1;
+		ringbuf_memcpy_from(response, backlog_buffer, len);
+		to_console(response);
+	    }
+
+	    goto command_handled_2;
+	}
+#endif
 #ifdef SCRIPTED
 	if (nTokens >= 2 && strcmp(tokens[1], "script") == 0) {
 	    if (config.locked) {
@@ -880,15 +895,38 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
 	    if (strcmp(tokens[1], "broker_access") == 0) {
 		config.mqtt_broker_access = atoi(tokens[2]) & (LOCAL_ACCESS | REMOTE_ACCESS);
-		os_sprintf(response, "Broker access set\r\n", config.config_port);
+		os_sprintf(response, "Broker access set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_autoretain") == 0) {
 		config.auto_retained = atoi(tokens[2]) != 0;
-		os_sprintf(response, "Broker autoretain set\r\n", config.config_port);
+		os_sprintf(response, "Broker autoretain set\r\n");
 		goto command_handled;
 	    }
+#ifdef BACKLOG
+	    if (strcmp(tokens[1], "backlog") == 0) {
+		int backlog_size = atoi(tokens[2]);
+		if (backlog_size != 0) {
+		    if (backlog_buffer != NULL) {
+			os_sprintf(response, "Backlog already set\r\n");
+			goto command_handled;
+		    }
+		    backlog_buffer = ringbuf_new(backlog_size);
+		    if (backlog_buffer == NULL) {
+			os_sprintf(response, "No memory\r\n");
+			goto command_handled;
+		    }
+		    os_sprintf(response, "Backlog set to %d chars\r\n", backlog_size);
+		} else {
+		    if (backlog_buffer != NULL) {
+			ringbuf_free(&backlog_buffer);
+		    }
+		    os_sprintf(response, "Backlog off\r\n");
+		}
+		goto command_handled;
+	    }
+#endif
 #ifdef SCRIPTED
 	    if (strcmp(tokens[1], "script_logging") == 0) {
 		lang_logging = atoi(tokens[2]);
