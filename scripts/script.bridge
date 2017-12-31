@@ -2,6 +2,11 @@
 % Script for a fully transparent MQTT bridge
 %
 
+% Parameters for the other broker
+config mqtt_host	martinshome
+%config mqtt_user	test
+%config mqtt_password	secret
+
 config speed		160
 
 % The initialization, this is done once after booting
