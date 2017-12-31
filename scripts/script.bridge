@@ -1,0 +1,39 @@
+%
+% Script for a fully transparent MQTT bridge
+%
+
+config speed		160
+
+% The initialization, this is done once after booting
+on init
+do
+	println "Starting the bridge script"
+
+	setvar $local_pub = ""
+	subscribe local "#"
+
+% This is done after each MQTT (re)connect
+on mqttconnect
+do
+	subscribe remote "#"
+
+% Now the events, checked whenever something happens
+
+% The generic local topic handler
+on topic local "#"
+do
+	println "Got " | $this_topic | " " | $this_data
+	% Publish this remotly
+	if not ($local_pub = $this_topic) then
+		publish remote $this_topic $this_data
+	else
+		setvar $local_pub = ""
+	endif
+
+
+% The generic remote topic handler
+on topic remote "#"
+do
+	% Publish this locally
+	setvar $local_pub = $this_topic
+	publish local $this_topic $this_data
