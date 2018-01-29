@@ -37,7 +37,7 @@ extern uint8_t *my_script;
 extern struct espconn *downloadCon;
 extern struct espconn *scriptcon;
 
-void http_script_cb(char *response_body, int http_status, char *response_headers, int body_size);
+void http_script_cb(char* hostname, char* path, char *response_body, int http_status, char *response_headers, int body_size);
 void script_connected_cb(void *arg);
 #endif
 

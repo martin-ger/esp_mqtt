@@ -152,7 +152,7 @@ static void ICACHE_FLASH_ATTR script_recv_cb(void *arg, char *data, unsigned sho
     }
 }
 
-void ICACHE_FLASH_ATTR http_script_cb(char *response_body, int http_status, char *response_headers, int body_size) {
+void ICACHE_FLASH_ATTR http_script_cb(char* hostname, char* path, char *response_body, int http_status, char *response_headers, int body_size) {
     char response[64];
 
     if (http_status != 200) {
