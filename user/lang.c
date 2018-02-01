@@ -1924,7 +1924,7 @@ int ICACHE_FLASH_ATTR interpreter_serial_input(const char *data, int data_len) {
     if (!script_enabled)
 	return -1;
 
-    lang_debug("interpreter_topic_received\r\n");
+    lang_debug("interpreter_serial_input\r\n");
 
     interpreter_status = SERIAL_INPUT;
     interpreter_serial_data = (char *)data;

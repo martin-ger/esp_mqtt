@@ -119,7 +119,7 @@ This event happens when the time-of-day stored in the alarm with the given numbe
 ```
 serial
 ```
-This event happens when the "system_output" mode is set to 0 and a carriage return (CR)-terminated string has been received from the serial input. Instead of interpreting it as cli command it is forwarded to the scripting engine. The input value is availabe via the special variable _$this_serial_.
+This event happens when the "system_output" mode is set to 0 and a newline (NL)-terminated string has been received from the serial input. Instead of interpreting it as cli command it is forwarded to the scripting engine. The input value witout the trailing newline char is availabe via the special variable _$this_serial_.
 
 ```
 gpio_interrupt <num> (pullup|nopullup)

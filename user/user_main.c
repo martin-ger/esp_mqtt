@@ -291,8 +291,9 @@ void ICACHE_FLASH_ATTR con_print(uint8_t *str) {
 }
 
 void ICACHE_FLASH_ATTR serial_out(uint8_t *str) {
-    ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
-    system_os_post(user_procTaskPrio, SIG_SERIAL_TX, (ETSParam) NULL);
+    UART_Send(0, str, os_strlen(str));
+    //ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
+    //system_os_post(user_procTaskPrio, SIG_SERIAL_TX, (ETSParam) NULL);
 }
 
 bool ICACHE_FLASH_ATTR delete_retainedtopics() {
@@ -513,11 +514,12 @@ static void ICACHE_FLASH_ATTR user_procTask(os_event_t * events) {
 	    struct espconn *pespconn = (struct espconn *)events->par;
 	    if (pespconn == 0 && system_output == SYSTEM_OUTPUT_NONE) {
 		int bytes_count = ringbuf_bytes_used(console_rx_buffer);
-		char data[bytes_count+1];
+		char data[bytes_count];
 		ringbuf_memcpy_from(data, console_rx_buffer, bytes_count);
-		data[bytes_count] = '\0';
+		// overwrite the trailing '\n'
+		data[bytes_count-1] = '\0';
 #ifdef SCRIPTED
-		interpreter_serial_input(data, bytes_count);
+		interpreter_serial_input(data, bytes_count-1);
 #endif
 	    } else {
 		console_handle_command(pespconn);
