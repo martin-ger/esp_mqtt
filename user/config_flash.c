@@ -55,7 +55,7 @@ void config_load_default(sysconfig_p config) {
     os_sprintf(config->mqtt_user, "%s", "none");
     config->mqtt_password[0] = 0;
     wifi_get_macaddr(0, mac);
-    os_sprintf(config->mqtt_id, "%s_%2x%2x%2x", MQTT_ID, mac[3], mac[4], mac[5]);
+    os_sprintf(config->mqtt_id, "%s_%02x%02x%02x", MQTT_ID, mac[3], mac[4], mac[5]);
 #endif
 #ifdef NTP
     os_sprintf(config->ntp_server, "%s", "1.pool.ntp.org");

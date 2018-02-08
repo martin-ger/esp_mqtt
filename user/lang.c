@@ -180,21 +180,22 @@ void ICACHE_FLASH_ATTR inttimer_func(void *arg){
 // Interrupt handler - this function will be executed on any edge of a GPIO
 LOCAL void gpio_intr_handler(void *arg)
 {
-    gpio_entry_t *my_gpio_entry = (gpio_entry_t *)arg;
+    int i;
 
     uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
+    for (i = 0; i < gpio_counter; i++) {
+	if (gpio_status & BIT(gpios[i].no)) {
 
-    if (gpio_status & BIT(my_gpio_entry->no)) {
+	    // Disable interrupt for GPIO
+	    gpio_pin_intr_state_set(GPIO_ID_PIN(gpios[i].no), GPIO_PIN_INTR_DISABLE);
 
-        // Disable interrupt for GPIO
-        gpio_pin_intr_state_set(GPIO_ID_PIN(my_gpio_entry->no), GPIO_PIN_INTR_DISABLE);
+	    // Clear interrupt status for GPIO
+	    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(gpios[i].no));
 
-        // Clear interrupt status for GPIO
-        GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(my_gpio_entry->no));
-
-	// Start the timer
-    	os_timer_setfn(&my_gpio_entry->inttimer, inttimer_func, my_gpio_entry);
-    	os_timer_arm(&my_gpio_entry->inttimer, 50, 0); 
+	    // Start the timer
+	    os_timer_setfn(&gpios[i].inttimer, inttimer_func, &gpios[i]);
+	    os_timer_arm(&gpios[i].inttimer, 50, 0); 
+	}
     }
 }
 
@@ -203,6 +204,7 @@ void ICACHE_FLASH_ATTR init_gpios() {
 
     if (!script_enabled)
 	return;
+
     for (i = 0; i < gpio_counter; i++) {
 	gpio_pin_intr_state_set(GPIO_ID_PIN(gpios[i].no), GPIO_PIN_INTR_ANYEDGE);
     }
@@ -622,7 +624,7 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 		return syntax_error(next_token, "too many gpio_interrupt");
 	    gpios[gpio_counter].no = gpio_no;
 	    easygpio_pinMode(gpio_no, pullup, EASYGPIO_INPUT);
-	    easygpio_attachInterrupt(gpio_no, pullup, gpio_intr_handler, &gpios[gpio_counter]);
+	    easygpio_attachInterrupt(gpio_no, pullup, gpio_intr_handler, NULL);
 
 	    gpio_counter++;
 	}
