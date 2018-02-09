@@ -5,6 +5,7 @@
 #include "os_type.h"
 
 #include "global.h"
+#include "sys_time.h"
 
 static char INVALID_LOCKED[] = "Invalid command. Config locked\r\n";
 static char INVALID_NUMARGS[] = "Invalid number of arguments\r\n";
