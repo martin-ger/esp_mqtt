@@ -145,7 +145,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	to_console(response);
 	os_sprintf(response, "set [config_port|config_access|bitrate|system_output] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [broker_user|broker_password|broker_access|broker_clients] <val>\r\n");
+	os_sprintf(response, "set [broker_port|broker_user|broker_password|broker_access|broker_clients] <val>\r\n");
 	to_console(response);
 	os_sprintf(response, "set [broker_subscriptions|broker_retained_messages|broker_autoretain] <val>\r\n");
 	to_console(response);
@@ -164,7 +164,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 #endif
 #ifdef NTP
-	os_sprintf(response, "time\r\nset [ntp_server|ntp_interval|<ntp_timezone> <val>\r\n");
+	os_sprintf(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone] <val>\r\n");
 	to_console(response);
 #endif
 #ifdef MQTT_CLIENT
@@ -220,8 +220,14 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		       config.max_subscriptions, config.max_retained_messages, config.auto_retained?" (auto saved)":"");
 	    to_console(response);
 
-	    os_sprintf(response, "MQTT broker max. clients: %d\r\n", config.max_clients);
-	    to_console(response);
+	    if (config.mqtt_broker_port != MQTT_PORT) {
+		os_sprintf(response, "MQTT broker port: %d\r\n", config.mqtt_broker_port);
+		to_console(response);
+	    }
+	    if (config.max_clients != 0) {
+		os_sprintf(response, "MQTT broker max. clients: %d\r\n", config.max_clients);
+		to_console(response);
+	    }
 
 	    if (os_strcmp(config.mqtt_broker_user, "none") != 0) {
 		os_sprintf(response,
@@ -873,6 +879,12 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "broker_clients") == 0) {
 		config.max_clients = atoi(tokens[2]);
 		os_sprintf(response, "Broker max clients set\r\n");
+		goto command_handled;
+	    }
+
+	    if (strcmp(tokens[1], "broker_port") == 0) {
+		config.mqtt_broker_port = atoi(tokens[2]);
+		os_sprintf(response, "Broker port set\r\n");
 		goto command_handled;
 	    }
 

@@ -894,7 +894,7 @@ void  user_init() {
 	MQTT_server_onConnect(mqtt_broker_connect);
 	MQTT_server_onAuth(mqtt_broker_auth);
 
-	MQTT_server_start(1883 /*port */ , config.max_subscriptions,
+	MQTT_server_start(config.mqtt_broker_port , config.max_subscriptions,
 			  config.max_retained_messages);
 	load_retainedtopics();
 	set_on_retainedtopic_cb(mqtt_got_retained);

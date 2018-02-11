@@ -19,6 +19,8 @@
 #define SYSTEM_OUTPUT_CMD	1
 #define SYSTEM_OUTPUT_NONE	0
 
+#define MQTT_PORT	1883
+
 typedef struct
 {
     // To check if the structure is initialized or not in flash
@@ -56,6 +58,7 @@ typedef struct
     uint8_t	system_output;	// Disable system info and warnings
     uint32_t	bit_rate;	// Bit rate of serial link
 
+    uint16_t	mqtt_broker_port;	// Port where the MQTT broker listens (1883 default)
     uint16_t	max_subscriptions;	// Upper limit on subscribed topics
     uint16_t	max_retained_messages;	// Upper limit on stored retained messages
     uint16_t	max_clients;	// Upper limit on concurrently connected clients (0: mem is the limit)

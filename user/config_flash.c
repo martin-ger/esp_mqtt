@@ -40,6 +40,7 @@ void config_load_default(sysconfig_p config) {
     config->config_port = CONSOLE_SERVER_PORT;
     config->config_access = LOCAL_ACCESS | REMOTE_ACCESS;
 
+    config->mqtt_broker_port = MQTT_PORT;
     config->max_subscriptions = 30;
     config->max_retained_messages = 30;
     config->max_clients = 0;

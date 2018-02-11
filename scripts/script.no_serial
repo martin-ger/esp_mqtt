@@ -1,0 +1,15 @@
+% Config params, overwrite any previous settings from the commandline
+config system_output 0
+
+on init
+do
+	gpio_pinmode 1 input pullup
+	gpio_pinmode 3 input pullup
+
+on gpio_interrupt 1 pullup
+do
+	println "Interrupt GPIO 1: " | $this_gpio
+
+on gpio_interrupt 3 pullup
+do
+	println "Interrupt GPIO 3: " | $this_gpio

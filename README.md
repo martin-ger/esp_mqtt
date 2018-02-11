@@ -68,6 +68,7 @@ MQTT broker related command:
 - show [mqtt]: prints the current config or status information of the MQTT broker
 - set broker_user _unsername_: sets the username for authentication of MQTT clients ("none" if no auth, default)
 - set broker_password _password_: sets the password for authentication of MQTT clients ("none" if empty, default)
+- set broker_port _portno_: sets the port number where the broker listens (default: 1883)
 - set broker_access _mode_: controls the networks that allow MQTT broker access (0: no access, 1: only internal, 2: only external, 3: both (default))
 - set broker_subscriptions _max_: sets the max number of subscription the broker can store (default: 30)
 - set broker_retained_messages _max_: sets the max number of retained messages the broker can store (default: 30)
