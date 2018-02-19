@@ -1,11 +1,17 @@
+% This is a sample script that disables the UART and uses GPIO 1 and GPIO 3
+% as normal digital I/O pins (useful e.g. on a ESP01)
+
 % Config params, overwrite any previous settings from the commandline
+% disable all output on the UART
 config system_output 0
 
+% Now the initialization, this is done once after booting
 on init
 do
 	gpio_pinmode 1 input pullup
 	gpio_pinmode 3 input pullup
 
+% Now the events, checked whenever something happens
 on gpio_interrupt 1 pullup
 do
 	println "Interrupt GPIO 1: " | $this_gpio
