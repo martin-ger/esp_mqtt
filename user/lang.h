@@ -3,7 +3,7 @@
 
 #include "mqtt/mqtt_server.h"
 
-typedef enum {SYNTAX_CHECK, CONFIG, INIT, MQTT_CLIENT_CONNECT, WIFI_CONNECT, TOPIC_LOCAL, TOPIC_REMOTE, TIMER, SERIAL_INPUT, GPIO_INT, ALARM, HTTP_RESPONSE} Interpreter_Status;
+typedef enum {SYNTAX_CHECK, CONFIG, INIT, MQTT_CLIENT_CONNECT, WIFI_CONNECT, WIFI_DISCONNECT, TOPIC_LOCAL, TOPIC_REMOTE, TIMER, SERIAL_INPUT, GPIO_INT, ALARM, HTTP_RESPONSE} Interpreter_Status;
 typedef enum {STRING_T, DATA_T} Value_Type;
 
 typedef struct _var_entry_t {
@@ -41,6 +41,7 @@ int interpreter_config();
 int interpreter_init();
 int interpreter_mqtt_connect(void);
 int interpreter_wifi_connect(void);
+int interpreter_wifi_disconnect(void);
 int interpreter_topic_received(const char *topic, const char *data, int data_len, bool local);
 int interpreter_serial_input(const char *data, int data_len);
 

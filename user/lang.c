@@ -533,6 +533,15 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	return next_token + 1;
     }
 
+    if (is_token(next_token, "wifidisconnect")) {
+	lang_debug("event wifidisconnect\r\n");
+
+	*happend = (interpreter_status == WIFI_DISCONNECT);
+	if (*happend)
+	    lang_log("on wifidisconnect\r\n");
+	return next_token + 1;
+    }
+
     if (is_token(next_token, "topic")) {
 	char *topic;
 	int topic_len;
@@ -646,7 +655,7 @@ int ICACHE_FLASH_ATTR parse_event(int next_token, bool * happend) {
 	return next_token + 1;
     }
 #endif
-    return syntax_error(next_token, "'init', 'mqttconnect', 'topic', 'gpio_interrupt', 'serial', 'alarm', 'http_response', or 'timer' expected");
+    return syntax_error(next_token, "event spec (like 'topic') expected");
 }
 
 int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
@@ -1887,6 +1896,18 @@ int ICACHE_FLASH_ATTR interpreter_wifi_connect(void) {
     lang_debug("interpreter_wifi_connect\r\n");
 
     interpreter_status = WIFI_CONNECT;
+    interpreter_topic = interpreter_data = "";
+    interpreter_data_len = 0;
+    return parse_statement(0);
+}
+
+int ICACHE_FLASH_ATTR interpreter_wifi_disconnect(void) {
+    if (!script_enabled)
+	return -1;
+
+    lang_debug("interpreter_wifi_disconnect\r\n");
+
+    interpreter_status = WIFI_DISCONNECT;
     interpreter_topic = interpreter_data = "";
     interpreter_data_len = 0;
     return parse_statement(0);

@@ -560,6 +560,9 @@ void wifi_handle_event_cb(System_Event_t * evt) {
 
 	MQTT_server_cleanupClientCons();
 
+#ifdef SCRIPTED
+	interpreter_wifi_disconnect();
+#endif
 #ifdef MQTT_CLIENT
 	if (mqtt_enabled)
 // Missing test for local

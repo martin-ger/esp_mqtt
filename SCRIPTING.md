@@ -30,7 +30,7 @@ In general, scripts conform to the following BNF:
                 <statement> <statement>
 
 <event> ::= init |
-            wificonnect |
+            wificonnect | wifidisconnect |
 	    mqttconnect |
             timer <num> |
             alarm <num> |
@@ -92,9 +92,9 @@ init
 This event happens once after restart of the script. All "config" parameters are applied, but typically WiFi is not yet up and no external nodes are connected. This is typically the clause where the initalization of variables and timers as well as subscriptions to topics on the local broker take place.
 
 ```
-wificonnect
+wificonnect | wifidisconnect
 ```
-This event happens each time, the esp_uMQTT_broker (re-)connects as client to the WiFi and has received an IP address.
+This event happens each time, the esp_uMQTT_broker (re-)connects as client to the WiFi and has received an IP address, resp. if it disconnects (tyically due to link loss).
 
 ```
 mqttconnect
