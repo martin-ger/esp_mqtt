@@ -7,6 +7,15 @@
 #include "global.h"
 #include "sys_time.h"
 
+#define os_sprintf_flash(str, fmt, ...) do {	\
+	static const char flash_str[] ICACHE_RODATA_ATTR STORE_ATTR = fmt;	\
+	int flen = (sizeof(flash_str) + 4) & ~3;	\
+	char *f = (char *)os_malloc(flen);	\
+	os_memcpy(f, flash_str, flen);	\
+	ets_vsprintf(str, f,  ##__VA_ARGS__);	\
+	os_free(f);	\
+	} while(0)
+
 static char INVALID_LOCKED[] = "Invalid command. Config locked\r\n";
 static char INVALID_NUMARGS[] = "Invalid number of arguments\r\n";
 static char INVALID_ARG[] = "Invalid argument\r\n";
@@ -133,42 +142,42 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
     }
 
     if (strcmp(tokens[0], "help") == 0) {
-	os_sprintf(response, "show [config|stats|mqtt]\r\nsave\r\nreset [factory]\r\nlock [<password>]\r\nunlock <password>\r\nquit\r\n");
+	os_sprintf_flash(response, "show [config|stats|mqtt]\r\nsave\r\nreset [factory]\r\nlock [<password>]\r\nunlock <password>\r\nquit\r\n");
 	to_console(response);
 #ifdef ALLOW_SCANNING
-	os_sprintf(response, "scan\r\n");
+	os_sprintf_flash(response, "scan\r\n");
 	to_console(response);
 #endif
-	os_sprintf(response, "set [ssid|password|auto_connect|ap_ssid|ap_password|ap_on|ap_open] <val>\r\n");
+	os_sprintf_flash(response, "set [ssid|password|auto_connect|ap_ssid|ap_password|ap_on|ap_open] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [network|dns|ip|netmask|gw] <val>\r\n");
+	os_sprintf_flash(response, "set [network|dns|ip|netmask|gw] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [config_port|config_access|bitrate|system_output] <val>\r\n");
+	os_sprintf_flash(response, "set [config_port|config_access|bitrate|system_output] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [broker_port|broker_user|broker_password|broker_access|broker_clients] <val>\r\n");
+	os_sprintf_flash(response, "set [broker_port|broker_user|broker_password|broker_access|broker_clients] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "set [broker_subscriptions|broker_retained_messages|broker_autoretain] <val>\r\n");
+	os_sprintf_flash(response, "set [broker_subscriptions|broker_retained_messages|broker_autoretain] <val>\r\n");
 	to_console(response);
-	os_sprintf(response, "delete_retained|save_retained\r\n");
+	os_sprintf_flash(response, "delete_retained|save_retained\r\n");
 	to_console(response);
-	os_sprintf(response, "publish [local|remote] <topic> <data> [retained]\r\n");
+	os_sprintf_flash(response, "publish [local|remote] <topic> <data> [retained]\r\n");
 	to_console(response);
 #ifdef SCRIPTED
-	os_sprintf(response, "script <port>|<url>|delete\r\nshow [script|vars]\r\n");
+	os_sprintf_flash(response, "script <port>|<url>|delete\r\nshow [script|vars]\r\n");
 	to_console(response);
 #ifdef GPIO
 #ifdef GPIO_PWM
-	os_sprintf(response, "set pwm_period <val>\r\n");
+	os_sprintf_flash(response, "set pwm_period <val>\r\n");
 	to_console(response);
 #endif
 #endif
 #endif
 #ifdef NTP
-	os_sprintf(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone] <val>\r\n");
+	os_sprintf_flash(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone] <val>\r\n");
 	to_console(response);
 #endif
 #ifdef MQTT_CLIENT
-	os_sprintf(response, "set [mqtt_host|mqtt_port|mqtt_ssl|mqtt_user|mqtt_password|mqtt_id] <val>\r\n");
+	os_sprintf_flash(response, "set [mqtt_host|mqtt_port|mqtt_ssl|mqtt_user|mqtt_password|mqtt_id] <val>\r\n");
 	to_console(response);
 #endif
 
@@ -293,20 +302,20 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (connected) {
 		os_sprintf(response, "External IP-address: " IPSTR "\r\n", IP2STR(&my_ip));
 	    } else {
-		os_sprintf(response, "Not connected to AP\r\n");
+		os_sprintf_flash(response, "Not connected to AP\r\n");
 	    }
 	    to_console(response);
 	    if (config.ap_on)
 		os_sprintf(response, "%d Station%s connected to AP\r\n",
 			   wifi_softap_get_station_num(), wifi_softap_get_station_num() == 1 ? "" : "s");
 	    else
-		os_sprintf(response, "AP disabled\r\n");
+		os_sprintf_flash(response, "AP disabled\r\n");
 	    to_console(response);
 #ifdef NTP
 	    if (ntp_sync_done()) {
 		os_sprintf(response, "NTP synced: %s \r\n", get_timestr());
 	    } else {
-		os_sprintf(response, "NTP no sync\r\n");
+		os_sprintf_flash(response, "NTP no sync\r\n");
 	    }
 	    to_console(response);
 #endif
@@ -331,7 +340,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    os_sprintf(response, "%sCurrent subsriptions:\r\n", ccnt ? "\r\n" : "");
 	    to_console(response);
 	    iterate_topics(printf_topic, response);
-	    os_sprintf(response, "Retained topics:\r\n");
+	    os_sprintf_flash(response, "Retained topics:\r\n");
 	    to_console(response);
 	    iterate_retainedtopics(printf_retainedtopic, response);
 #ifdef MQTT_CLIENT
@@ -379,7 +388,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    bool nl;
 
 	    if (script == 0) {
-		os_sprintf(response, "Out of memory");
+		os_sprintf_flash(response, "Out of memory");
 		goto command_handled;
 	    }
 
@@ -450,14 +459,14 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
 	if (nTokens == 1 || (nTokens == 2 && strcmp(tokens[1], "config") == 0)) {
 	    config_save(&config);
-	    os_sprintf(response, "Config saved\r\n");
+	    os_sprintf_flash(response, "Config saved\r\n");
 	    goto command_handled;
 	}
     }
 #ifdef ALLOW_SCANNING
     if (strcmp(tokens[0], "scan") == 0) {
 	wifi_station_scan(NULL, scan_done);
-	os_sprintf(response, "Scanning...\r\n");
+	os_sprintf_flash(response, "Scanning...\r\n");
 	goto command_handled;
     }
 #endif
@@ -494,7 +503,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
     if (strcmp(tokens[0], "quit") == 0) {
 	remote_console_disconnect = 1;
-	os_sprintf(response, "Quitting console\r\n");
+	os_sprintf_flash(response, "Quitting console\r\n");
 	goto command_handled;
     }
 #ifdef SCRIPTED
@@ -520,7 +529,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		free_script();
 	    blob_zero(0, MAX_SCRIPT_SIZE);
 	    blob_zero(1, MAX_FLASH_SLOTS * FLASH_SLOT_LEN);
-	    os_sprintf(response, "Script deleted\r\n");
+	    os_sprintf_flash(response, "Script deleted\r\n");
 	    goto command_handled;
 	}
 
@@ -533,7 +542,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
 	port = atoi(tokens[1]);
 	if (port == 0) {
-	    os_sprintf(response, "Invalid port\r\n");
+	    os_sprintf_flash(response, "Invalid port\r\n");
 	    goto command_handled;
 	}
 	// delete and disable existing script
@@ -565,12 +574,12 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
     if (strcmp(tokens[0], "lock") == 0) {
 	if (config.locked) {
-	    os_sprintf(response, "Config already locked\r\n");
+	    os_sprintf_flash(response, "Config already locked\r\n");
 	    goto command_handled;
 	}
 	if (nTokens == 1) {
 	    if (os_strlen(config.lock_password) == 0) {
-		os_sprintf(response, "No password defined\r\n");
+		os_sprintf_flash(response, "No password defined\r\n");
 		goto command_handled;
 	    }
 	}
@@ -593,9 +602,9 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	} else if (os_strcmp(tokens[1], config.lock_password) == 0) {
 	    config.locked = 0;
 	    config_save(&config);
-	    os_sprintf(response, "Config unlocked\r\n");
+	    os_sprintf_flash(response, "Config unlocked\r\n");
 	} else {
-	    os_sprintf(response, "Unlock failed. Invalid password\r\n");
+	    os_sprintf_flash(response, "Unlock failed. Invalid password\r\n");
 	}
 	goto command_handled;
     }
@@ -633,7 +642,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
             os_sprintf(response, "Invalid arg %s\r\n", tokens[1]);
             goto command_handled;
 	}
-	os_sprintf(response, "Published topic\r\n");
+	os_sprintf_flash(response, "Published topic\r\n");
 	goto command_handled;
     }
 
@@ -651,7 +660,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 
 	delete_retainedtopics();
 
-	os_sprintf(response, "Deleted retained topics\r\n");
+	os_sprintf_flash(response, "Deleted retained topics\r\n");
 	goto command_handled;
     }
 
@@ -704,42 +713,42 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "ssid") == 0) {
 		os_sprintf(config.ssid, "%s", tokens[2]);
 		config.auto_connect = 1;
-		os_sprintf(response, "SSID set (auto_connect = 1)\r\n");
+		os_sprintf_flash(response, "SSID set (auto_connect = 1)\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "password") == 0) {
 		os_sprintf(config.password, "%s", tokens[2]);
-		os_sprintf(response, "Password set\r\n");
+		os_sprintf_flash(response, "Password set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "auto_connect") == 0) {
 		config.auto_connect = atoi(tokens[2]);
-		os_sprintf(response, "Auto Connect set\r\n");
+		os_sprintf_flash(response, "Auto Connect set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "ap_ssid") == 0) {
 		os_sprintf(config.ap_ssid, "%s", tokens[2]);
-		os_sprintf(response, "AP SSID set\r\n");
+		os_sprintf_flash(response, "AP SSID set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "ap_password") == 0) {
 		if (os_strlen(tokens[2]) < 8) {
-		    os_sprintf(response, "Password to short (min. 8)\r\n");
+		    os_sprintf_flash(response, "Password to short (min. 8)\r\n");
 		} else {
 		    os_sprintf(config.ap_password, "%s", tokens[2]);
 		    config.ap_open = 0;
-		    os_sprintf(response, "AP Password set\r\n");
+		    os_sprintf_flash(response, "AP Password set\r\n");
 		}
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "ap_open") == 0) {
 		config.ap_open = atoi(tokens[2]);
-		os_sprintf(response, "Open Auth set\r\n");
+		os_sprintf_flash(response, "Open Auth set\r\n");
 		goto command_handled;
 	    }
 
@@ -750,9 +759,9 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 			user_set_softap_wifi_config();
 			do_ip_config = true;
 			config.ap_on = true;
-			os_sprintf(response, "AP on\r\n");
+			os_sprintf_flash(response, "AP on\r\n");
 		    } else {
-			os_sprintf(response, "AP already on\r\n");
+			os_sprintf_flash(response, "AP already on\r\n");
 		    }
 
 		} else {
@@ -764,9 +773,9 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 			}
 #endif
 			config.ap_on = false;
-			os_sprintf(response, "AP off\r\n");
+			os_sprintf_flash(response, "AP off\r\n");
 		    } else {
-			os_sprintf(response, "AP already off\r\n");
+			os_sprintf_flash(response, "AP already off\r\n");
 		    }
 		}
 		goto command_handled;
@@ -805,7 +814,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "dns") == 0) {
 		if (os_strcmp(tokens[2], "dhcp") == 0) {
 		    config.dns_addr.addr = 0;
-		    os_sprintf(response, "DNS from DHCP\r\n");
+		    os_sprintf_flash(response, "DNS from DHCP\r\n");
 		} else {
 		    config.dns_addr.addr = ipaddr_addr(tokens[2]);
 		    os_sprintf(response, "DNS set to %d.%d.%d.%d\r\n", IP2STR(&config.dns_addr));
@@ -819,7 +828,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "ip") == 0) {
 		if (os_strcmp(tokens[2], "dhcp") == 0) {
 		    config.my_addr.addr = 0;
-		    os_sprintf(response, "IP from DHCP\r\n");
+		    os_sprintf_flash(response, "IP from DHCP\r\n");
 		} else {
 		    config.my_addr.addr = ipaddr_addr(tokens[2]);
 		    os_sprintf(response, "IP address set to %d.%d.%d.%d\r\n", IP2STR(&config.my_addr));
@@ -849,7 +858,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "config_port") == 0) {
 		config.config_port = atoi(tokens[2]);
 		if (config.config_port == 0)
-		    os_sprintf(response, "WARNING: if you save this, remote console access will be disabled!\r\n");
+		    os_sprintf_flash(response, "WARNING: if you save this, remote console access will be disabled!\r\n");
 		else
 		    os_sprintf(response, "Config port set to %d\r\n", config.config_port);
 		goto command_handled;
@@ -858,7 +867,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "config_access") == 0) {
 		config.config_access = atoi(tokens[2]) & (LOCAL_ACCESS | REMOTE_ACCESS);
 		if (config.config_access == 0)
-		    os_sprintf(response, "WARNING: if you save this, remote console access will be disabled!\r\n");
+		    os_sprintf_flash(response, "WARNING: if you save this, remote console access will be disabled!\r\n");
 		else
 		    os_sprintf(response, "Config access set\r\n");
 		goto command_handled;
@@ -866,32 +875,32 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 	    if (strcmp(tokens[1], "broker_subscriptions") == 0) {
 		config.max_subscriptions = atoi(tokens[2]);
-		os_sprintf(response, "Broker subscriptions set\r\n");
+		os_sprintf_flash(response, "Broker subscriptions set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_retained_messages") == 0) {
 		config.max_retained_messages = atoi(tokens[2]);
-		os_sprintf(response, "Broker retained messages set\r\n");
+		os_sprintf_flash(response, "Broker retained messages set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_clients") == 0) {
 		config.max_clients = atoi(tokens[2]);
-		os_sprintf(response, "Broker max clients set\r\n");
+		os_sprintf_flash(response, "Broker max clients set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_port") == 0) {
 		config.mqtt_broker_port = atoi(tokens[2]);
-		os_sprintf(response, "Broker port set\r\n");
+		os_sprintf_flash(response, "Broker port set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_user") == 0) {
 		os_strncpy(config.mqtt_broker_user, tokens[2], 32);
 		config.mqtt_broker_user[31] = '\0';
-		os_sprintf(response, "Broker username set\r\n");
+		os_sprintf_flash(response, "Broker username set\r\n");
 		goto command_handled;
 	    }
 
@@ -902,19 +911,19 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		    os_strncpy(config.mqtt_broker_password, tokens[2], 32);
 		    config.mqtt_broker_password[31] = '\0';
 		}
-		os_sprintf(response, "Broker password set\r\n");
+		os_sprintf_flash(response, "Broker password set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_access") == 0) {
 		config.mqtt_broker_access = atoi(tokens[2]) & (LOCAL_ACCESS | REMOTE_ACCESS);
-		os_sprintf(response, "Broker access set\r\n");
+		os_sprintf_flash(response, "Broker access set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "broker_autoretain") == 0) {
 		config.auto_retained = atoi(tokens[2]) != 0;
-		os_sprintf(response, "Broker autoretain set\r\n");
+		os_sprintf_flash(response, "Broker autoretain set\r\n");
 		goto command_handled;
 	    }
 #ifdef BACKLOG
@@ -922,7 +931,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		int backlog_size = atoi(tokens[2]);
 		if (backlog_size != 0) {
 		    if (backlog_buffer != NULL) {
-			os_sprintf(response, "Backlog already set\r\n");
+			os_sprintf_flash(response, "Backlog already set\r\n");
 			goto command_handled;
 		    }
 		    backlog_buffer = ringbuf_new(backlog_size);
@@ -935,7 +944,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		    if (backlog_buffer != NULL) {
 			ringbuf_free(&backlog_buffer);
 		    }
-		    os_sprintf(response, "Backlog off\r\n");
+		    os_sprintf_flash(response, "Backlog off\r\n");
 		}
 		goto command_handled;
 	    }
@@ -943,14 +952,14 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #ifdef SCRIPTED
 	    if (strcmp(tokens[1], "script_logging") == 0) {
 		lang_logging = atoi(tokens[2]);
-		os_sprintf(response, "Script logging set\r\n");
+		os_sprintf_flash(response, "Script logging set\r\n");
 		goto command_handled;
 	    }
 
 	    if (tokens[1][0] == '@') {
 		uint32_t slot_no = atoi(&tokens[1][1]);
 		if (slot_no == 0 || slot_no > MAX_FLASH_SLOTS) {
-		    os_sprintf(response, "Invalid flash slot number");
+		    os_sprintf_flash(response, "Invalid flash slot number");
 		} else {
 		    slot_no--;
 		    uint8_t slots[MAX_FLASH_SLOTS*FLASH_SLOT_LEN];
@@ -965,7 +974,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #ifdef GPIO_PWM
 	    if (strcmp(tokens[1], "pwm_period") == 0) {
 		config.pwm_period = atoi(tokens[2]);
-		os_sprintf(response, "PWM period set\r\n");
+		os_sprintf_flash(response, "PWM period set\r\n");
 		goto command_handled;
 	    }
 #endif
@@ -997,13 +1006,13 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "mqtt_host") == 0) {
 		os_strncpy(config.mqtt_host, tokens[2], 32);
 		config.mqtt_host[31] = 0;
-		os_sprintf(response, "MQTT host set\r\n");
+		os_sprintf_flash(response, "MQTT host set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_port") == 0) {
 		config.mqtt_port = atoi(tokens[2]);
-		os_sprintf(response, "MQTT port set\r\n");
+		os_sprintf_flash(response, "MQTT port set\r\n");
 		goto command_handled;
 	    }
 
@@ -1016,21 +1025,21 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    if (strcmp(tokens[1], "mqtt_user") == 0) {
 		os_strncpy(config.mqtt_user, tokens[2], 32);
 		config.mqtt_user[31] = 0;
-		os_sprintf(response, "MQTT user set\r\n");
+		os_sprintf_flash(response, "MQTT user set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_password") == 0) {
 		os_strncpy(config.mqtt_password, tokens[2], 32);
 		config.mqtt_password[31] = 0;
-		os_sprintf(response, "MQTT password set\r\n");
+		os_sprintf_flash(response, "MQTT password set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_id") == 0) {
 		os_strncpy(config.mqtt_id, tokens[2], 32);
 		config.mqtt_id[31] = 0;
-		os_sprintf(response, "MQTT id set\r\n");
+		os_sprintf_flash(response, "MQTT id set\r\n");
 		goto command_handled;
 	    }
 #endif				/* MQTT_CLIENT */
@@ -1039,7 +1048,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
     }
 
     /* Control comes here only if the tokens[0] command is not handled */
-    os_sprintf(response, "\r\nInvalid Command\r\n");
+    os_sprintf_flash(response, "\r\nInvalid Command\r\n");
 
  command_handled:
     to_console(response);
