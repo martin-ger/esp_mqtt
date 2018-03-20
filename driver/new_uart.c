@@ -229,6 +229,8 @@ int UART_Recv(uint8 uart_no, char *buffer, int max_buf_len)
 int ICACHE_FLASH_ATTR UART_Echo(uint8 echo)
 {
     echo_on = echo;
+
+    return echo_on;
 }
 
 int UART_Send(uint8 uart_no, char *buffer, int len)
@@ -242,6 +244,8 @@ int UART_Send(uint8 uart_no, char *buffer, int len)
         ch = *(buffer+index);
         uart_tx_one_char(uart_no, ch);
     }
+
+    return index;
 }
 
 /*---------------------------------------------------------------------------*

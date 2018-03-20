@@ -13,7 +13,7 @@ bool ICACHE_FLASH_ATTR find_next_pair(struct jsonparse_state *state, char *name,
     int json_type;
 
     //os_printf ("name: %s level: %d\r\n", name, level);
-    while(json_type = jsonparse_next(state)) {
+    while((json_type = jsonparse_next(state))) {
 	//os_printf ("json_type: %d json_level: %d\r\n", json_type, state->depth);
 	if (state->depth < level-1)
 	    return false;
@@ -87,7 +87,7 @@ void ICACHE_FLASH_ATTR json_path(char *json, char *path, char *buf, int *buf_siz
     }
     level -= 2;
 
-    while (json_type = jsonparse_next(&state)) {
+    while ((json_type = jsonparse_next(&state))) {
 	//os_printf ("level: %d json_type: %d json_level: %d\r\n", level, json_type, state.depth);
 	if (state.depth < level) {
 	    *buf_size = 0;

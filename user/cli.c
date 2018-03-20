@@ -173,7 +173,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 #endif
 #ifdef NTP
-	os_sprintf_flash(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone] <val>\r\n");
+	os_sprintf_flash(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone|ntp_time|ntp_weekday] <val>\r\n");
 	to_console(response);
 #endif
 #ifdef MQTT_CLIENT
@@ -189,6 +189,9 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	ip_addr_t i_ip;
 
 	if (nTokens == 1 || (nTokens == 2 && strcmp(tokens[1], "config") == 0)) {
+	    os_sprintf(response, "Version %s (build: %s)\r\n", ESP_UBROKER_VERSION, __TIMESTAMP__);
+	    to_console(response);
+
 	    os_sprintf(response, "STA: SSID:%s PW:%s%s\r\n",
 		       config.ssid,
 		       config.locked ? "***" : (char *)config.password, config.auto_connect ? "" : " [AutoConnect:0]");
@@ -296,7 +299,7 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    os_sprintf(response, "Free mem: %d\r\n", system_get_free_heap_size());
 	    to_console(response);
 #ifdef SCRIPTED
-	    os_sprintf(response, "Interpreter loop: %d us\r\n", loop_time);
+	    os_sprintf(response, "Interpreter loop: %d (%d us)\r\n", loop_count, loop_time);
 	    to_console(response);
 #endif
 	    if (connected) {
@@ -999,6 +1002,27 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		config.ntp_timezone = atoi(tokens[2]);
 		set_timezone(config.ntp_timezone);
 		os_sprintf(response, "NTP timezone set to %d h\r\n", config.ntp_timezone);
+		goto command_handled;
+	    }
+
+	    if (strcmp(tokens[1], "ntp_time") == 0) {
+		if (strlen(tokens[2]) != 8 || tokens[2][2] != ':' || tokens[2][5] != ':') {
+		    os_sprintf_flash(response, "Time format hh:mm:ss\r\n");
+		    goto command_handled;
+		}
+		tokens[2][2] = '\0';
+		tokens[2][5] = '\0';
+		set_time_local(atoi(tokens[2]), atoi(&tokens[2][3]), atoi(&tokens[2][6]));
+		os_sprintf(response, "Time set to %s \r\n", get_timestr());
+		goto command_handled;
+	    }
+
+	    if (strcmp(tokens[1], "ntp_weekday") == 0) {
+		if (set_weekday_local(tokens[2])) {
+		    os_sprintf(response, "Weekday set to %s\r\n", get_weekday());
+		} else {
+		    os_sprintf_flash(response, "Set weekday failed\r\n");
+		}
 		goto command_handled;
 	    }
 #endif

@@ -494,6 +494,7 @@ int ICACHE_FLASH_ATTR parse_statement(int next_token) {
 	}
     }
 
+    loop_count++;
     lang_debug("Interpreter loop: %d us\r\n", (system_get_time()-start));
     if (interpreter_status == INIT)
 	loop_time = system_get_time()-start;
@@ -823,7 +824,7 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 	}
 
 	else if (is_token(next_token, "if")) {
-	    uint32_t if_val;
+	    uint32_t if_val = 0;
 	    char *if_char;
 	    int if_len;
 	    Value_Type if_type;

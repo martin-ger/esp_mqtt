@@ -22,6 +22,7 @@ extern bool lang_logging;
 
 uint8_t tmp_buffer[128];
 uint32_t loop_time;
+uint32_t loop_count;
 
 int text_into_tokens(char *str);
 void free_tokens(void);

@@ -299,6 +299,7 @@ void ICACHE_FLASH_ATTR serial_out(uint8_t *str) {
 bool ICACHE_FLASH_ATTR delete_retainedtopics() {
     clear_retainedtopics();
     blob_zero(RETAINED_SLOT, MAX_RETAINED_LEN);
+    return true;
 }
 
 bool ICACHE_FLASH_ATTR save_retainedtopics() {
@@ -770,7 +771,7 @@ void  user_init() {
     // Temporarily initialize the UART with 115200
     UART_init_console(BIT_RATE_115200, 0, console_rx_buffer, console_tx_buffer);
 
-    os_printf("\r\n\r\nWiFi Router/MQTT Broker V2.0 starting\r\n");
+    os_printf("\r\n\r\nuMQTT Broker %s starting\r\n", ESP_UBROKER_VERSION);
 
     // Load config
     int config_res = config_load(&config);
@@ -781,6 +782,7 @@ void  user_init() {
     }
 
 #ifdef SCRIPTED
+    loop_count = loop_time = 0;
     script_enabled = false;
     if ((config_res == 0) && read_script()) {
 	if (interpreter_syntax_check() != -1) {

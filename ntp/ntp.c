@@ -45,9 +45,9 @@ uint8_t *ICACHE_FLASH_ATTR get_timestr() {
 }
 
 
+static uint8_t *days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 uint8_t *ICACHE_FLASH_ATTR get_weekday() {
     struct timeval tv;
-    static uint8_t *days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
     get_cur_time(&tv);
     tv.tv_sec += ntp_timezone * 3600;
@@ -182,4 +182,30 @@ void ICACHE_FLASH_ATTR ntp_get_time() {
     espconn_create(pCon);
     espconn_regist_recvcb(pCon, ntp_udp_recv);
     espconn_sent(pCon, (uint8 *) & ntp, sizeof(ntp_t));
+}
+
+void ICACHE_FLASH_ATTR set_time_local(uint16_t h, uint16_t m, uint16_t s) {
+
+    // get the according sys_time;
+    t_offset = get_long_systime();
+
+    t_tv.tv_sec -= t_tv.tv_sec % (3600 * 24);
+    t_tv.tv_sec += (h%24)*3600 + (m%60)*60 + s%60;
+    t_tv.tv_usec = 0;
+}
+
+bool ICACHE_FLASH_ATTR set_weekday_local(char *day) {
+    int i;
+
+    for (i = 0; i<7; i++) {
+	if (os_strcmp(day, days[i]) == 0)
+	    break;
+    }
+    if (i>=7)
+	return false;
+
+    t_tv.tv_sec = t_tv.tv_sec % (3600 * 24);
+    t_tv.tv_sec += (7 + i-3) * (3600 * 24);
+
+    return true;
 }

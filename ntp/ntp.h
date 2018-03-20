@@ -26,4 +26,7 @@ void set_timezone(int16_t timezone);
 uint8_t *get_timestr();
 uint8_t *get_weekday();
 
+void set_time_local(uint16_t h, uint16_t m, uint16_t s);
+bool set_weekday_local(char *day);
+
 #endif

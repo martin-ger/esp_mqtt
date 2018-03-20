@@ -171,7 +171,7 @@ CMD>
 You can examine the currently loaded script using the "show script" command. It only displays about 1KB of a script. If you need to see more, use "show script <line_no>" with a higher starting line. Newly loaded scripts are stored persistently in flash and will be executed after next reset if they contain no syntax errors. "script delete" stops script execution and deleted a script from flash.
 
 # NTP Support
-NTP time is supported and timestamps are only available if the sync with an NTP server is done. By default the NTP client is enabled and set to "1.pool.ntp.org". It can be changed by setting the config parameter "ntp_server" to a hostname or an IP address. An ntp_server of "none" will disable the NTP client. Also you can set the "ntp_timezone" to an offset from GMT in hours. The system time will be synced with the NTP server every "ntp_interval" seconds. Here it uses NOT the full NTP calculation and clock drift compensation. Instead it will just set the local time to the latest received time.
+NTP time is supported and accurate timestamps are available if the sync with an NTP server is done. By default the NTP client is enabled and set to "1.pool.ntp.org". It can be changed by setting the config parameter "ntp_server" to a hostname or an IP address. An ntp_server of "none" will disable the NTP client. Also you can set the "ntp_timezone" to an offset from GMT in hours. The system time will be synced with the NTP server every "ntp_interval" seconds. Here it uses NOT the full NTP calculation and clock drift compensation. Instead it will just set the local time to the latest received time.
 
 After NTP sync has been completed successfully once, the local time will be published every second under the topic "$SYS/broker/time" in the format "hh:mm:ss". You can also query the NTP time using the "time" command from the commandline. 
 
@@ -179,6 +179,10 @@ After NTP sync has been completed successfully once, the local time will be publ
 - set ntp_interval _interval_: sets the NTP sync interval in seconds (default 300)
 - set ntp_timezone _tz_: sets the timezone in hours offset (default 0)
 - time: prints the current time as ddd hh:mm:ss
+
+If you don't have internet access but still need a time base e.g. for your script, you can set the time manually (be aware that the local timer of the ESP has a significant drift):
+- set ntp_time _hh:mm:ss_: sets the NTP time manually
+- set ntp_weekday _ddd_: sets the current day of week ("Mon"-"Sun")
 
 # mDNS
 mDNS is supported and depending on "mdns_mode" the broker responds on the name "mqtt.local" with one of its two addresses:
