@@ -444,7 +444,17 @@ void ICACHE_FLASH_ATTR timer_func(void *arg) {
 
     if (ntp_sync_done()) {
 	uint8_t *timestr = get_timestr();
-	MQTT_local_publish("$SYS/broker/time", get_timestr(config.ntp_timezone), 8, 0, 0);
+	MQTT_local_publish("$SYS/broker/time", timestr, 8, 0, 0);
+
+	// Save system time to RTC memory 
+	uint32_t test_magic = MAGIC_NUMBER;
+	system_rtc_mem_write (64, &test_magic, 4);
+	system_rtc_mem_write (65, (uint32_t *) get_weekday(), 4);
+        uint8_t timeval[4];
+	timeval[0] = atoi(&timestr[0]);
+	timeval[1] = atoi(&timestr[3]);
+	timeval[2] = atoi(&timestr[6]);
+	system_rtc_mem_write (66, (uint32_t *) timeval, 4);	
 #ifdef SCRIPTED
 	check_timestamps(timestr);
 #endif
@@ -780,6 +790,20 @@ void  user_init() {
 	// Clear retained topics slot
 	blob_zero(RETAINED_SLOT, MAX_RETAINED_LEN);
     }
+
+#ifdef NTP
+    // Restore system time from RTC memory (if found)
+    uint32_t test_magic;
+    system_rtc_mem_read (64, &test_magic, 4);
+    if (test_magic == MAGIC_NUMBER) {
+	char weekday[4];
+	system_rtc_mem_read (65, (int *)weekday, 4);
+	set_weekday_local(weekday);
+	uint8_t time[4];
+	system_rtc_mem_read (66, (int *)time, 4);
+	set_time_local(time[0], time[1], time[2]);
+    }
+#endif
 
 #ifdef SCRIPTED
     loop_count = loop_time = 0;
