@@ -30,11 +30,11 @@ do
 	setvar $device_number = @1 * 1
 
 	% Read delay constanst in secs from flash @2
-	setvar $delay = @2 * 1;
+	setvar $delay = @2 * 1
 	if $delay = 0 then
 		% Write default
-		setvar $delay = 10;
-		setvar @2 = 10;
+		setvar $delay = 10
+		setvar @2 = $delay
 	endif
 
 	% Status of the PIR
