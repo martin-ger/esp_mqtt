@@ -953,14 +953,14 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 		lang_debug("setvar $%s\r\n", var_id);
 
 		if (flash_var) {
-		    if (var_len > FLASH_SLOT_LEN)
-			var_len = FLASH_SLOT_LEN;
+		    if (var_len > FLASH_SLOT_LEN-1)
+			var_len = FLASH_SLOT_LEN-1;
 
 		    slot_no--;
 		    uint8_t slots[MAX_FLASH_SLOTS*FLASH_SLOT_LEN];
 		    blob_load(1, (uint32_t *)slots, sizeof(slots));
 		    os_memcpy(&slots[slot_no*FLASH_SLOT_LEN], var_data, var_len);
-		    slots[slot_no*FLASH_SLOT_LEN+FLASH_SLOT_LEN-1] = '\0';
+		    slots[slot_no*FLASH_SLOT_LEN+var_len] = '\0';
 		    blob_save(1, (uint32_t *)slots, sizeof(slots));
 		} else {
 

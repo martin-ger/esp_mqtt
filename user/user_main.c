@@ -266,7 +266,7 @@ void ICACHE_FLASH_ATTR console_send_response(struct espconn *pespconn, bool seri
     ringbuf_memcpy_from(payload, console_tx_buffer, len);
     if (pespconn != NULL) {
 	if (!client_sent_pending) {
-	    espconn_sent(pespconn, payload, len);
+	    espconn_send(pespconn, payload, len);
 	    client_sent_pending = true;
 	}
     } else {
@@ -292,8 +292,6 @@ void ICACHE_FLASH_ATTR con_print(uint8_t *str) {
 
 void ICACHE_FLASH_ATTR serial_out(uint8_t *str) {
     UART_Send(0, str, os_strlen(str));
-    //ringbuf_memcpy_into(console_tx_buffer, str, os_strlen(str));
-    //system_os_post(user_procTaskPrio, SIG_SERIAL_TX, (ETSParam) NULL);
 }
 
 bool ICACHE_FLASH_ATTR delete_retainedtopics() {
@@ -403,7 +401,7 @@ static void ICACHE_FLASH_ATTR tcp_client_connected_cb(void *arg) {
     ringbuf_reset(console_tx_buffer);
 
     os_sprintf(payload, "CMD>");
-    espconn_sent(pespconn, payload, os_strlen(payload));
+    espconn_send(pespconn, payload, os_strlen(payload));
     client_sent_pending = true;
     console_conn = pespconn;
 }
@@ -511,12 +509,6 @@ static void ICACHE_FLASH_ATTR user_procTask(os_event_t * events) {
 	    if (pespconn != 0 && remote_console_disconnect)
 		espconn_disconnect(pespconn);
 	    remote_console_disconnect = 0;
-	}
-	break;
-
-    case SIG_SERIAL_TX:
-	{
-	    console_send_response(NULL, true);
 	}
 	break;
 
