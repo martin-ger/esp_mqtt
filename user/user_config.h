@@ -1,7 +1,7 @@
 #ifndef _USER_CONFIG_
 #define _USER_CONFIG_
 
-#define ESP_UBROKER_VERSION "V2.0.2"
+#define ESP_UBROKER_VERSION "V2.0.3"
 
 #define WIFI_SSID            "ssid"
 #define WIFI_PASSWORD        "password"
