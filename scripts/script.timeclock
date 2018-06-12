@@ -1,5 +1,5 @@
 % Timeclock example for using alarms
-% Publish time values (format hh:mm:ss) on the "/timeclock/on_time" and "/timeclock/on_time" topics
+% Publish time values (format hh:mm:ss) on the "/timeclock/on_time" and "/timeclock/off_time" topics
 % to the brocker and the build-in LED will switch at the given times.
 
 % Config params, overwrite any previous settings from the commandline
