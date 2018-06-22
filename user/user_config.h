@@ -89,6 +89,12 @@
 #define MDNS	  1
 
 //
+// Define this if you want to have access the DNS responder.
+// Experimental feature - not yet tested
+//
+//#define DNS_RESP  1
+
+//
 // Define this to support the "scan" command for AP search
 //
 #define ALLOW_SCANNING      1

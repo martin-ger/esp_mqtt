@@ -26,6 +26,10 @@ uint64_t t_ntp_resync = 0;
 static struct mdns_info mdnsinfo;
 #endif
 
+#ifdef DNS_RESP
+#include "dns_responder.h"
+#endif
+
 #ifdef SCRIPTED
 #include "lang.h"
 #include "pub_list.h"
@@ -752,6 +756,24 @@ void ICACHE_FLASH_ATTR mqtt_got_retained(retained_entry *topic) {
 }
 
 
+#ifdef DNS_RESP
+int ICACHE_FLASH_ATTR get_A_Record(uint8_t addr[4], const char domain_name[])
+{
+  if (strcmp(config.broker_dns_name, domain_name) == 0) {
+    *(uint32_t*)addr = config.network_addr.addr;
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
+int ICACHE_FLASH_ATTR get_AAAA_Record(uint8_t addr[16], const char domain_name[])
+{
+    return -1;
+}
+#endif
+
+
 void  user_init() {
     struct ip_info info;
 
@@ -843,6 +865,11 @@ void  user_init() {
 	wifi_set_opmode(STATIONAP_MODE);
 	user_set_softap_wifi_config();
 	do_ip_config = true;
+#ifdef DNS_RESP
+        if (strcmp(config.broker_dns_name, "none")!=0) {
+	    dns_resp_init(DNS_MODE_AP);
+	}
+#endif
     } else {
 	wifi_set_opmode(STATION_MODE);
     }

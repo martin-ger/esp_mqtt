@@ -176,6 +176,10 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	os_sprintf_flash(response, "time\r\nset [ntp_server|ntp_interval|ntp_timezone|ntp_time|ntp_weekday] <val>\r\n");
 	to_console(response);
 #endif
+#ifdef DNS_RESP
+	os_sprintf_flash(response, "set dns_name <name>\r\n");
+	to_console(response);
+#endif
 #ifdef MQTT_CLIENT
 	os_sprintf_flash(response, "set [mqtt_host|mqtt_port|mqtt_ssl|mqtt_user|mqtt_password|mqtt_id] <val>\r\n");
 	to_console(response);
@@ -213,6 +217,12 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    // if static DNS, add it
 	    os_sprintf(response, config.dns_addr.addr ? "DNS: %d.%d.%d.%d\r\n" : "", IP2STR(&config.dns_addr));
 	    to_console(response);
+#ifdef DNS_RESP
+            if (strcmp(config.broker_dns_name, "none")!=0 && config.ap_on) {
+		os_sprintf(response, "DNS name: %s\r\n", config.broker_dns_name);
+		to_console(response);
+	    }
+#endif
 #ifdef MDNS
 	    if (config.mdns_mode) {
 		os_sprintf(response, "mDNS: %s interface\r\n", config.mdns_mode==1 ? "STA": "SoftAP");
@@ -1023,6 +1033,14 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		} else {
 		    os_sprintf_flash(response, "Set weekday failed\r\n");
 		}
+		goto command_handled;
+	    }
+#endif
+#ifdef DNS_RESP
+	    if (strcmp(tokens[1], "dns_name") == 0) {
+		os_strncpy(config.broker_dns_name, tokens[2], 32);
+		config.mqtt_host[31] = 0;
+		os_sprintf_flash(response, "DNS name set\r\n");
 		goto command_handled;
 	    }
 #endif

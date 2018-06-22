@@ -81,6 +81,9 @@ typedef struct
     uint32_t	ntp_interval;	// Sync interval in usec
     int16_t	ntp_timezone;	// Timezone (hour offset to GMT)
 #endif
+#ifdef DNS_RESP
+    uint8_t	broker_dns_name[32];	// DNS name of the MQTT broker in the SoftAP network, "none" if empty
+#endif
 #ifdef GPIO
 #ifdef GPIO_PWM
     uint32_t	pwm_period;	// PWM period

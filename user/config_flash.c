@@ -63,6 +63,9 @@ void ICACHE_FLASH_ATTR config_load_default(sysconfig_p config) {
     config->ntp_interval = 300000000;
     config->ntp_timezone = 0;
 #endif
+#ifdef DNS_RESP
+    os_sprintf(config->broker_dns_name, "%s", "none");
+#endif
 #ifdef GPIO
 #ifdef GPIO_PWM
     config->pwm_period = 5000;
