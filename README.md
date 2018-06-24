@@ -58,6 +58,7 @@ WiFi and network related commands:
 - set ip dhcp: configures dynamic IP address for the ESP in the uplink network, default
 - set netmask _netmask_: sets a static netmask for the uplink network
 - set gw _gw-addr_: sets a static gateway address in the uplink network
+- set dns_name _dnsname_: sets the DNS name of the uMQTTBroker (only for clients connected to the softAP) ("none" = disabled, default)
 - set mdns_mode [0|1|2]: selects, which interface should be announced via mDNS (0: none (default), 1: STA, 2: SoftAP)
 - scan: does a scan for APs
 
@@ -183,6 +184,11 @@ After NTP sync has been completed successfully once, the local time will be publ
 If you don't have internet access but still need a time base e.g. for your script, you can set the time manually (be aware that the local timer of the ESP has a significant drift):
 - set ntp_time _hh:mm:ss_: sets the NTP time manually
 - set ntp_weekday _ddd_: sets the current day of week ("Mon"-"Sun")
+
+# DNS
+A simple DNS responder is included, so an MQTT client connected to the AP interface might also use a name instead of the IP. Any valid domain name can be configured (shorter than 31 chars).
+
+- set dns_name _dnsname_: sets the DNS name of the uMQTTBroker (only for clients connected to the softAP) ("none" = disabled, default)
 
 # mDNS
 mDNS is supported and depending on "mdns_mode" the broker responds on the name "mqtt.local" with one of its two addresses:
