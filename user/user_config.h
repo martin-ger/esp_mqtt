@@ -1,7 +1,7 @@
 #ifndef _USER_CONFIG_
 #define _USER_CONFIG_
 
-#define ESP_UBROKER_VERSION "V2.0.3"
+#define ESP_UBROKER_VERSION "V2.0.4"
 
 #define WIFI_SSID            "ssid"
 #define WIFI_PASSWORD        "password"
@@ -92,7 +92,7 @@
 // Define this if you want to have access the DNS responder.
 // Experimental feature - not yet tested
 //
-//#define DNS_RESP  1
+#define DNS_RESP  1
 
 //
 // Define this to support the "scan" command for AP search

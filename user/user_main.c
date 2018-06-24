@@ -766,11 +766,6 @@ int ICACHE_FLASH_ATTR get_A_Record(uint8_t addr[4], const char domain_name[])
     return -1;
   }
 }
-
-int ICACHE_FLASH_ATTR get_AAAA_Record(uint8_t addr[16], const char domain_name[])
-{
-    return -1;
-}
 #endif
 
 
