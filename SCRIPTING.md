@@ -52,6 +52,7 @@ In general, scripts conform to the following BNF:
              gpio_pwm <num> <num> |
              serial_out <expr> |
              if <expr> then <action> [else <action>] endif |
+             while <expr> do <action> done |
 	     print <expr> | println <expr> |
 	     system <expr> |
              <action> <action>
@@ -207,6 +208,11 @@ Prints the given expression to serial or a connected remote console (either with
 if <expr> then <action> [else <action>] endif
 ```
 Classic "if then else" expression. Sequences of actions must be terminated with the (optional) "else" and the "endif". Can be nested.
+
+```
+while <expr> do <action> done
+```
+Classic "while" loop. Can be nested. Make sure that loops terminate quickly (about a second) to avoid a watchdog timeout reset.
 
 ## Expressions
 Expressions evaluate to a (string) value. A single constant, a string, or a variable are the basic expressions. Expressions can be combined by operators. If more than one operator is used in an expression, all expressions are stricly evaluated from left to right. CAUTION: arithmetical preceedence does not (yet) apply automatically like in other programming languages. However, the preceedence can be fully controlled by brackets. 

@@ -663,7 +663,7 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 
     while (next_token < max_token && !is_token(next_token, "on")
 	   && !is_token(next_token, "config") && !is_token(next_token, "else")
-	   && !is_token(next_token, "endif")) {
+	   && !is_token(next_token, "endif") && !is_token(next_token, "done")) {
 	bool is_nl = false;
 
 	if (doit) {
@@ -853,6 +853,38 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 		    return syntax_error(next_token - 1, "'endif' expected");
 	    }
 	}
+
+
+	else if (is_token(next_token, "while")) {
+	    uint32_t if_val = 0;
+	    char *if_char;
+	    int if_len;
+	    Value_Type if_type;
+	    int exp_token;
+	    int repeat_token = next_token;
+
+	    len_check(3);
+	    exp_token = next_token + 1;
+	    if ((next_token = parse_expression(next_token + 1, &if_char, &if_len, &if_type, doit)) == -1)
+		return -1;
+	    if (syn_chk && !is_token(next_token, "do"))
+		return syntax_error(next_token, "'do' expected");
+
+	    if (doit) {
+		if_val = atoi(if_char);
+		if (if_val != 0)
+		    lang_log("while %s %s... (done) \r\n", my_token[exp_token++], my_token[exp_token]);
+	    }
+	    if ((next_token = parse_action(next_token + 1, doit && if_val != 0)) == -1)
+		return -1;
+	    if (syn_chk && !is_token(next_token - 1, "done")) {
+		return syntax_error(next_token - 1, "'done' expected");
+	    }
+	    if (!syn_chk && doit && if_val != 0) {
+		next_token = repeat_token;
+	    }
+	}
+
 
 	else if (is_token(next_token, "settimer")) {
 	    len_check(2);
@@ -1108,7 +1140,7 @@ int ICACHE_FLASH_ATTR parse_action(int next_token, bool doit) {
 
     }
 
-    if (is_token(next_token, "endif"))
+    if (is_token(next_token, "endif") || is_token(next_token, "done"))
 	next_token++;
 
     return next_token;
