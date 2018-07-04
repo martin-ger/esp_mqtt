@@ -244,5 +244,6 @@ Also there is a hard limitation on the number of STAs connected to the SoftAP, w
 - eadf for esp8266_easygpio (https://github.com/eadf/esp8266_easygpio )
 - Stefan Brüns for ESP8266_new_pwm (https://github.com/StefanBruens/ESP8266_new_pwm )
 - Martin d'Allens for esphttpclient (https://github.com/Caerbannog/esphttpclient )
+- Moritz Warning for SimpleDNS (https://github.com/mwarning/SimpleDNS )
 - Ian Craggs for mqtt_topic
 - many others contributing to open software (for the ESP8266)
