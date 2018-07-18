@@ -508,10 +508,8 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	save_retainedtopics();
 
 	os_printf("Restarting ... \r\n");
-	system_restart();	// if it works this will not return
-
-	os_sprintf(response, "Reset failed\r\n");
-	goto command_handled;
+	system_restart();
+	while (true);
     }
 
     if (strcmp(tokens[0], "quit") == 0) {
