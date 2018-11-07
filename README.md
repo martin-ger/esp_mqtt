@@ -239,7 +239,7 @@ To adjust memory consumption of one MQTT connection and thus the max number of c
 Also there is a hard limitation on the number of STAs connected to the SoftAP, which is 8. I.e. when using the esp_uMQTT_broker only with clients via the SoftAP interface, even with reduced memory consumtion, the limit of different client nodes is still 8, as it is imposed by the binary WiFi driver. Only when used via the STA interface and an external AP you can connect more than 8 MQTT clients.
 
 # Thanks
-- pfalcon for esp_open_sdk (https://github.com/martin-ger/esp-open-sdk)
+- pfalcon for esp_open_sdk (best with NONOS SDK V2.2 patches - https://github.com/xxxajk/esp-open-lwip)
 - tuanpmt for esp_mqtt (https://github.com/tuanpmt/esp_mqtt )
 - eadf for esp8266_easygpio (https://github.com/eadf/esp8266_easygpio )
 - Stefan Brüns for ESP8266_new_pwm (https://github.com/StefanBruens/ESP8266_new_pwm )

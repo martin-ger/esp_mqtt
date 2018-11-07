@@ -12,7 +12,7 @@
 # - 2014-11-23: Updated for SDK 0.9.3
 # - 2014-12-25: Replaced esptool by esptool.py
 
-BUILD_AREA = /home/martin/github
+BUILD_AREA = $(CURDIR)/..
 
 # Output directors to store intermediate compiled files
 # relative to the project directory
@@ -43,11 +43,11 @@ LIB_MODULES	= mqtt
 LIBS		= c gcc hal pp phy net80211 lwip wpa main ssl json
 
 # compiler flags using during compilation of source files
-CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -DUSE_OPTIMIZE_PRINTF -Desp8266
+CFLAGS		= -Os -ffunction-sections -fdata-sections -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -DUSE_OPTIMIZE_PRINTF -Desp8266
 #-DMQTT_DEBUG_ON
 
 # linker flags used to generate the main object file
-LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
+LDFLAGS		= -ffunction-sections -fdata-sections -Wl,-gc-sections -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 
 # linker script used for the above linkier step
 LD_SCRIPT	= eagle.app.v6.ld
