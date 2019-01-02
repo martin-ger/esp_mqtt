@@ -87,13 +87,13 @@ int ICACHE_FLASH_ATTR config_load(sysconfig_p config) {
 	return -1;
     }
 
-    os_printf("\r\nConfig found and loaded\r\n");
+    os_printf("\r\nConfig found and loaded\r\n");    
     spi_flash_read(base_address * SPI_FLASH_SEC_SIZE, (uint32 *) config, sizeof(sysconfig_t));
     if (config->length != sizeof(sysconfig_t)) {
-	os_printf("Length Mismatch, probably old version of config, loading defaults\r\n");
-	config_load_default(config);
-	config_save(config);
-	return -1;
+        os_printf("Length Mismatch, probably old version of config, loading defaults\r\n");
+        config_load_default(config);
+        config_save(config);
+        return -1;
     }
     return 0;
 }

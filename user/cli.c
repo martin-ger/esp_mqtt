@@ -909,8 +909,8 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    }
 
 	    if (strcmp(tokens[1], "broker_user") == 0) {
-		os_strncpy(config.mqtt_broker_user, tokens[2], 32);
-		config.mqtt_broker_user[31] = '\0';
+		os_strncpy(config.mqtt_broker_user, tokens[2], sizeof(config.mqtt_broker_user));
+		config.mqtt_broker_user[sizeof(config.mqtt_broker_user)-1] = '\0';
 		os_sprintf_flash(response, "Broker username set\r\n");
 		goto command_handled;
 	    }
@@ -919,8 +919,8 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		if (os_strcmp(tokens[2], "none") == 0) {
 		    config.mqtt_broker_password[0] = '\0';
 		} else {
-		    os_strncpy(config.mqtt_broker_password, tokens[2], 32);
-		    config.mqtt_broker_password[31] = '\0';
+		    os_strncpy(config.mqtt_broker_password, tokens[2], sizeof(config.mqtt_broker_password));
+		    config.mqtt_broker_password[sizeof(config.mqtt_broker_password)-1] = '\0';
 		}
 		os_sprintf_flash(response, "Broker password set\r\n");
 		goto command_handled;
@@ -993,8 +993,8 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 #ifdef NTP
 	    if (strcmp(tokens[1], "ntp_server") == 0) {
-		os_strncpy(config.ntp_server, tokens[2], 32);
-		config.ntp_server[31] = 0;
+		os_strncpy(config.ntp_server, tokens[2], sizeof(config.ntp_server));
+		config.ntp_server[sizeof(config.ntp_server)-1] = '\0';
 		ntp_set_server(config.ntp_server);
 		os_sprintf(response, "NTP server set to %s\r\n", config.ntp_server);
 		goto command_handled;
@@ -1036,16 +1036,16 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 #endif
 #ifdef DNS_RESP
 	    if (strcmp(tokens[1], "dns_name") == 0) {
-		os_strncpy(config.broker_dns_name, tokens[2], 32);
-		config.mqtt_host[31] = 0;
+		os_strncpy(config.broker_dns_name, tokens[2], sizeof(config.broker_dns_name));
+		config.mqtt_host[sizeof(config.broker_dns_name)-1] = '\0';
 		os_sprintf_flash(response, "DNS name set\r\n");
 		goto command_handled;
 	    }
 #endif
 #ifdef MQTT_CLIENT
 	    if (strcmp(tokens[1], "mqtt_host") == 0) {
-		os_strncpy(config.mqtt_host, tokens[2], 32);
-		config.mqtt_host[31] = 0;
+		os_strncpy(config.mqtt_host, tokens[2], sizeof(config.mqtt_host));
+		config.mqtt_host[sizeof(config.mqtt_host)-1] = '\0';
 		os_sprintf_flash(response, "MQTT host set\r\n");
 		goto command_handled;
 	    }
@@ -1063,22 +1063,22 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_user") == 0) {
-		os_strncpy(config.mqtt_user, tokens[2], 32);
-		config.mqtt_user[31] = 0;
+		os_strncpy(config.mqtt_user, tokens[2], sizeof(config.mqtt_user));
+		config.mqtt_user[sizeof(config.mqtt_user)-1] = '\0';
 		os_sprintf_flash(response, "MQTT user set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_password") == 0) {
-		os_strncpy(config.mqtt_password, tokens[2], 32);
-		config.mqtt_password[31] = 0;
+		os_strncpy(config.mqtt_password, tokens[2], sizeof(config.mqtt_password));
+		config.mqtt_password[sizeof(config.mqtt_password)-1] = '\0';
 		os_sprintf_flash(response, "MQTT password set\r\n");
 		goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "mqtt_id") == 0) {
-		os_strncpy(config.mqtt_id, tokens[2], 32);
-		config.mqtt_id[31] = 0;
+		os_strncpy(config.mqtt_id, tokens[2], sizeof(config.mqtt_id));
+		config.mqtt_id[sizeof(config.mqtt_id)-1] = '\0';
 		os_sprintf_flash(response, "MQTT id set\r\n");
 		goto command_handled;
 	    }

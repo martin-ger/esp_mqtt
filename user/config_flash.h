@@ -74,7 +74,7 @@ typedef struct
 
     uint8_t     mqtt_user[32];	// Username for broker login, "none" if empty
     uint8_t     mqtt_password[32]; // Password for broker login
-    uint8_t	mqtt_id[32];    // MQTT clientId
+    uint8_t mqtt_id[48];    // MQTT clientId
 #endif
 #ifdef NTP
     uint8_t	ntp_server[32];	// IP or hostname of the MQTT broker, "none" if empty

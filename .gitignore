@@ -4,3 +4,5 @@ build/
 .settings/
 .DS_Store
 include/user_config.local.h
+scripts/script.demo
+scripts/script.timers
