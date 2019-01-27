@@ -19,6 +19,7 @@ void ICACHE_FLASH_ATTR config_load_default(sysconfig_p config) {
     config->auto_connect = 0;
     os_sprintf(config->ap_ssid, "%s", WIFI_AP_SSID);
     os_sprintf(config->ap_password, "%s", WIFI_AP_PASSWORD);
+    config->ap_channel = WIFI_AP_CHANNEL;
     config->ap_open = 1;
     config->ap_on = 1;
 

@@ -659,12 +659,13 @@ void ICACHE_FLASH_ATTR user_set_softap_wifi_config(void) {
     os_sprintf(apConfig.ssid, "%s", config.ap_ssid);
     os_memset(apConfig.password, 0, 64);
     os_sprintf(apConfig.password, "%s", config.ap_password);
+    apConfig.channel = config.ap_channel;
     if (!config.ap_open)
-	apConfig.authmode = AUTH_WPA_WPA2_PSK;
+	    apConfig.authmode = AUTH_WPA_WPA2_PSK;
     else
-	apConfig.authmode = AUTH_OPEN;
+	    apConfig.authmode = AUTH_OPEN;
+    
     apConfig.ssid_len = 0;	// or its actual length
-
     apConfig.max_connection = MAX_CLIENTS;	// how many stations can connect to ESP8266 softAP at most.
 
     // Set ESP8266 softap config

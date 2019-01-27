@@ -13,7 +13,7 @@
 
 #define FLASH_BLOCK_NO 0xc
 
-#define MAGIC_NUMBER    0x015005fd
+#define MAGIC_NUMBER    0x015034fd
 
 #define SYSTEM_OUTPUT_INFO	2
 #define SYSTEM_OUTPUT_CMD	1
@@ -37,8 +37,9 @@ typedef struct
 
     uint8_t     ap_ssid[32];       // SSID of the own AP
     uint8_t     ap_password[64];   // Password of the own network
+    uint8_t     ap_channel;        // Channel of the AP
     uint8_t     ap_open;           // Should we use no WPA?
-    uint8_t	ap_on;		   // AP enabled?
+    uint8_t	    ap_on;		       // AP enabled?
 
     uint8_t     locked;		// Should we allow for config changes
     uint8_t     lock_password[32];   // Password of config lock

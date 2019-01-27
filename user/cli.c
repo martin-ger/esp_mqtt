@@ -747,20 +747,31 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 	    }
 
 	    if (strcmp(tokens[1], "ap_password") == 0) {
-		if (os_strlen(tokens[2]) < 8) {
-		    os_sprintf_flash(response, "Password to short (min. 8)\r\n");
-		} else {
-		    os_sprintf(config.ap_password, "%s", tokens[2]);
-		    config.ap_open = 0;
-		    os_sprintf_flash(response, "AP Password set\r\n");
-		}
-		goto command_handled;
+			if (os_strlen(tokens[2]) < 8) {
+				os_sprintf_flash(response, "Password to short (min. 8)\r\n");
+			} else {
+				os_sprintf(config.ap_password, "%s", tokens[2]);
+				config.ap_open = 0;
+				os_sprintf_flash(response, "AP Password set\r\n");
+			}
+			goto command_handled;
 	    }
 
+		if (strcmp(tokens[1],"ap_channel") == 0) {
+			uint8_t chan = atoi(tokens[2]);
+			if (chan >= 1 && chan <= 13) {
+		    	config.ap_channel = chan;
+            	os_sprintf(response, "AP channel set to %d\r\n", config.ap_channel);
+			} else {
+		    	os_sprintf_flash(response, "Invalid channel (1-13)\r\n");
+			}
+            goto command_handled;
+		}
+
 	    if (strcmp(tokens[1], "ap_open") == 0) {
-		config.ap_open = atoi(tokens[2]);
-		os_sprintf_flash(response, "Open Auth set\r\n");
-		goto command_handled;
+			config.ap_open = atoi(tokens[2]);
+			os_sprintf_flash(response, "Open Auth set\r\n");
+			goto command_handled;
 	    }
 
 	    if (strcmp(tokens[1], "ap_on") == 0) {
@@ -774,7 +785,6 @@ void ICACHE_FLASH_ATTR console_handle_command(struct espconn *pespconn) {
 		    } else {
 			os_sprintf_flash(response, "AP already on\r\n");
 		    }
-
 		} else {
 		    if (config.ap_on) {
 			wifi_set_opmode(STATION_MODE);

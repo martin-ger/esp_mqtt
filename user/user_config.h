@@ -1,13 +1,14 @@
 #ifndef _USER_CONFIG_
 #define _USER_CONFIG_
 
-#define ESP_UBROKER_VERSION "V2.0.8"
+#define ESP_UBROKER_VERSION "V2.0.9"
 
 #define WIFI_SSID            "ssid"
 #define WIFI_PASSWORD        "password"
 
 #define WIFI_AP_SSID         "MyAP"
 #define WIFI_AP_PASSWORD     "none"
+#define WIFI_AP_CHANNEL      1
 
 #define MAX_CLIENTS	     8
 
